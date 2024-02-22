@@ -1,0 +1,64 @@
+[versions]
+andoix-compose-bom = "2024.02.00"
+activity-compose = "1.8.2"
+androidx-junit = "1.1.5"
+binance-connector-java = "3.2.0"
+compose = "1.13.1"
+core-ktx = "1.12.0"
+espresso-core = "3.5.1"
+hilt-android = "2.50"
+hilt-work = "1.1.0"
+junit = "4.13.2"
+realm_kotlin = "1.13.0"
+lifecycle-runtime-ktx = "2.7.0"
+moshi = "1.15.0"
+navigation-compose = "2.7.7"
+work-runtime = "2.9.0"
+
+android_application = "8.2.2"
+kotlin_android = "1.9.22"
+ksp = "1.9.22-1.0.17"
+appcompat = "1.6.1"
+material = "1.11.0"
+
+
+[libraries]
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "andoix-compose-bom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-work" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hilt-work" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-junit" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work-runtime" }
+binance-connector-java = { module = "io.github.binance:binance-connector-java", version.ref = "binance-connector-java" }
+vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "compose" }
+vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "compose" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-android" }
+junit = { module = "junit:junit", version.ref = "junit" }
+realm-library-base = { module = "io.realm.kotlin:library-base", version.ref = "realm_kotlin" }
+moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
+moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+[plugins]
+android_application = { id = "com.android.application", version.ref = "android_application" }
+kotlin_android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin_android" }
+dagger_hilt_android = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+realm_kotlin = { id = "io.realm.kotlin", version.ref = "realm_kotlin" }
+androidLibrary = { id = "com.android.library", version.ref = "android_application" }
