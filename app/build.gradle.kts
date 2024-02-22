@@ -59,8 +59,10 @@ android {
 
 dependencies {
     implementation(project(mapOf("path" to ":core:domain")))
+    implementation(project(mapOf("path" to ":core:client")))
     implementation(project(mapOf("path" to ":feature:account")))
     implementation(project(mapOf("path" to ":feature:trades")))
+    implementation(project(mapOf("path" to ":feature:settings")))
 
     val platform = platform(libs.androidx.compose.bom)
     implementation(libs.androidx.core.ktx)
@@ -78,6 +80,7 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+    ksp(libs.hilt.android.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

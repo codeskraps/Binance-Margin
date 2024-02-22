@@ -6,15 +6,16 @@ import com.codeskraps.core.client.adapters.CandleAdapter
 import com.codeskraps.core.client.model.Candle
 import com.codeskraps.core.client.model.Interval
 import com.codeskraps.core.client.model.MarginAccountDto
-import com.codeskraps.core.client.model.Order
+import com.codeskraps.core.client.model.OrderDto
 import com.codeskraps.core.client.model.TickerDto
-import com.codeskraps.core.client.model.Trade
+import com.codeskraps.core.client.model.TradeDto
 import com.codeskraps.core.client.model.TransferHistory
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 
 class BinanceClient @Inject constructor(
@@ -23,7 +24,6 @@ class BinanceClient @Inject constructor(
 ) {
     companion object {
         const val BASE_ASSET = "USDT"
-        private const val START_TIME = 1707414465000
         private val TAG = BinanceClient::class.java.simpleName
     }
 
@@ -31,6 +31,8 @@ class BinanceClient @Inject constructor(
     private val market by lazy { client.createMarket() }
     private val moshi by lazy { Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build() }
     private val moshiCandles by lazy { Moshi.Builder().add(CandleAdapter()).build() }
+
+    fun tradedSymbols(): List<String> = store.tradedAssets.toList().map { "$it${BASE_ASSET}" }
 
     fun marginAccount(): MarginAccountDto? {
         return runCatching {
@@ -132,7 +134,7 @@ class BinanceClient @Inject constructor(
                 val ticker = tickerSymbol(symbols)
 
                 var index = 0
-                val sorted = transferHistory.rows.filter { it.timestamp >= START_TIME }
+                val sorted = transferHistory.rows.filter { it.timestamp >= store.startDate }
                     .sortedBy { it.timestamp }.reversed()
                 var invested = .0
 
@@ -179,15 +181,15 @@ class BinanceClient @Inject constructor(
         }.getOrElse { store.invested.toDouble() }
     }
 
-    fun trades(symbols: List<String>): List<Trade> {
-        val allTrades = mutableListOf<Trade>()
+    fun trades(symbols: List<String>): List<TradeDto> {
+        val allTrades = mutableListOf<TradeDto>()
         symbols.forEach { symbol ->
             allTrades.addAll(trades(symbol))
         }
         return allTrades.sortedBy { it.time }.reversed()
     }
 
-    fun trades(symbol: String): List<Trade> {
+    fun trades(symbol: String): List<TradeDto> {
         return runCatching {
             if (!badSymbols().contains(symbol)) {
                 val parameters: MutableMap<String, Any> = LinkedHashMap()
@@ -196,27 +198,27 @@ class BinanceClient @Inject constructor(
                 val json = margin.trades(parameters)
                 val listMyData = Types.newParameterizedType(
                     MutableList::class.java,
-                    Trade::class.java
+                    TradeDto::class.java
                 )
-                val jsonAdapter: JsonAdapter<List<Trade>> = moshi.adapter(listMyData)
+                val jsonAdapter: JsonAdapter<List<TradeDto>> = moshi.adapter(listMyData)
                 return@runCatching jsonAdapter.fromJson(json)
-                    ?.filter { it.time >= START_TIME }
+                    ?.filter { it.time >= store.startDate }
                     ?.sortedBy { it.time }?.reversed()
                     ?: emptyList()
             }
-            return@runCatching emptyList<Trade>()
+            return@runCatching emptyList<TradeDto>()
         }.getOrElse { emptyList() }
     }
 
-    fun orders(symbols: List<String>): List<Order> {
-        val allTrades = mutableListOf<Order>()
+    fun orders(symbols: List<String>): List<OrderDto> {
+        val allTrades = mutableListOf<OrderDto>()
         symbols.forEach { symbol ->
             allTrades.addAll(orders(symbol))
         }
         return allTrades.sortedBy { it.time }.reversed()
     }
 
-    fun orders(symbol: String): List<Order> {
+    fun orders(symbol: String): List<OrderDto> {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbol"] = symbol
@@ -224,11 +226,11 @@ class BinanceClient @Inject constructor(
             val json = margin.getAllOrders(parameters)
             val listMyData = Types.newParameterizedType(
                 MutableList::class.java,
-                Order::class.java
+                OrderDto::class.java
             )
-            val jsonAdapter: JsonAdapter<List<Order>> = moshi.adapter(listMyData)
+            val jsonAdapter: JsonAdapter<List<OrderDto>> = moshi.adapter(listMyData)
             return@runCatching jsonAdapter.fromJson(json)
-                ?.filter { it.time >= START_TIME }
+                ?.filter { it.time >= store.startDate }
                 ?.filter { it.status != "FILLED" }
                 ?.filter { it.status != "CANCELED" }
                 ?.sortedBy { it.time }?.reversed()
@@ -239,46 +241,71 @@ class BinanceClient @Inject constructor(
     fun entryPrice(symbol: String): Double {
         return runCatching {
             val trades = trades(symbol).reversed()
-            var holdingPrice = .0
-            var holdingQty = .0
+            var avgPrice = .0
+            var totalQty = .0
 
             if (trades.isEmpty()) {
                 if (symbol == "BONKUSDT") return@runCatching 0.00001063
                 else return@runCatching .0
             } else if (symbol == "BONKUSDT") {
-                holdingPrice = 0.00001063
-                holdingQty = 4703668.0
+                avgPrice = 0.00001063
+                totalQty = 4703668.0
             }
-
 
             trades.forEach { trade ->
-                if (holdingQty == .0) {
-                    holdingQty = trade.qty
-                    holdingPrice = trade.price
-                } else if (trade.isBuyer) {
-                    // opening longs
-                    holdingQty += trade.qty
-                    holdingPrice = calculateAverageEntryPrice(
-                        holdingQuantity = holdingQty,
-                        holdingAveragePrice = holdingPrice,
-                        tradeQuantity = trade.qty,
-                        tradePrice = trade.price
-                    )
 
-                } else {
+                if (trade.isBuyer && totalQty + trade.qty > .0) {
+                    // opening longs
+                    if (totalQty == .0) {
+                        totalQty = trade.qty
+                        avgPrice = trade.price
+                    } else {
+                        avgPrice = calculateAverageEntryPrice(
+                            holdingQuantity = totalQty,
+                            holdingAveragePrice = avgPrice,
+                            tradeQuantity = trade.qty,
+                            tradePrice = trade.price
+                        )
+                        totalQty += trade.qty
+                    }
+                }
+
+                if (!trade.isBuyer && totalQty - trade.qty > .0) {
                     // closing longs
-                    holdingQty -= trade.qty
+                    totalQty -= trade.qty
+                }
+
+                if (!trade.isBuyer && totalQty - trade.qty < .0) {
+                    // opening shorts
+                    if (totalQty == .0) {
+                        totalQty = -trade.qty
+                        avgPrice = trade.price
+                    } else {
+                        avgPrice = calculateAverageEntryPrice(
+                            holdingQuantity = totalQty.absoluteValue,
+                            holdingAveragePrice = avgPrice,
+                            tradeQuantity = trade.qty,
+                            tradePrice = trade.price
+                        )
+                        totalQty -= trade.qty
+                    }
+                }
+
+                if (trade.isBuyer && totalQty + trade.qty < .0) {
+                    // closing shorts
+                    totalQty += trade.qty
                 }
             }
-            return@runCatching holdingPrice
+            return@runCatching avgPrice
         }.getOrElse { .0 }
     }
 
     private fun sanitizeSymbols(symbols: ArrayList<String>): ArrayList<String> {
-        symbols.removeAll(badSymbols())
-        symbols.remove("BTC$BASE_ASSET")
-        symbols.add("BTC$BASE_ASSET")
-        return symbols
+        val newSymbols = ArrayList(symbols)
+        newSymbols.removeAll(badSymbols())
+        newSymbols.remove("BTC$BASE_ASSET")
+        newSymbols.add("BTC$BASE_ASSET")
+        return newSymbols
     }
 
     private fun badSymbols(): Set<String> {

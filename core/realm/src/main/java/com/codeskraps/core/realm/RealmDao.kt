@@ -32,6 +32,14 @@ interface RealmDao<T : RealmObject> {
         }
     }
 
+    suspend fun updateAll(entities: List<T>) {
+        realm.write {
+            for (entity in entities) {
+                copyToRealm(entity, UpdatePolicy.ALL)
+            }
+        }
+    }
+
     suspend fun findAll(): RealmResults<T> {
         return realm.query(clazz).find()
     }

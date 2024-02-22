@@ -1,6 +1,5 @@
 import com.codeskraps.binance.ConfigData
 
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.android)
@@ -52,10 +51,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.work)
     ksp(libs.hilt.compiler)
+    ksp(libs.hilt.android.compiler)
 
     implementation(libs.realm.library.base)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

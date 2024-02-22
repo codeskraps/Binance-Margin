@@ -1,23 +1,18 @@
 package com.codeskraps.feature.account
 
 import androidx.lifecycle.viewModelScope
-import com.codeskraps.core.domain.model.PnL
+import com.codeskraps.core.domain.model.AssertSort
+import com.codeskraps.core.domain.model.PnLTimeType
 import com.codeskraps.core.domain.model.Ticker
-import com.codeskraps.core.domain.usecases.GetEntryPriceUseCase
-import com.codeskraps.core.domain.usecases.GetInvestedUseCase
-import com.codeskraps.core.domain.usecases.GetMarginAccountUseCase
-import com.codeskraps.core.domain.usecases.GetPnLUseCase
-import com.codeskraps.core.domain.usecases.GetTickersUseCase
 import com.codeskraps.core.domain.util.Constants
 import com.codeskraps.core.domain.util.StateReducerViewModel
 import com.codeskraps.feature.account.model.Entry
-import com.codeskraps.core.domain.model.PnLTimeType
 import com.codeskraps.feature.account.mvi.AccountAction
 import com.codeskraps.feature.account.mvi.AccountEvent
 import com.codeskraps.feature.account.mvi.AccountState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -26,30 +21,33 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val getMarginAccount: GetMarginAccountUseCase,
-    private val getTickers: GetTickersUseCase,
-    private val getInvested: GetInvestedUseCase,
-    private val getEntryPrice: GetEntryPriceUseCase,
-    private val getPnL: GetPnLUseCase
-) : StateReducerViewModel<AccountState, AccountEvent, AccountAction>() {
+    private val usesCases: AccountUseCases
+) : StateReducerViewModel<AccountState, AccountEvent, AccountAction>(AccountState.initial) {
 
     companion object {
         private val TAG = AccountViewModel::class.java.simpleName
     }
 
-    override fun initState(): AccountState = AccountState.initial
-
     private var resumed = false
+    private var tickerJob: Job? = null
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val assetsSort = usesCases.getAssetsSort()
+            state.handleEvent(AccountEvent.AssetsSortLoaded(assetsSort))
+        }
+    }
 
     override fun reduceState(currentState: AccountState, event: AccountEvent): AccountState {
         return when (event) {
             is AccountEvent.Resume -> onResume(currentState)
-            is AccountEvent.AccountLoaded -> onLoaded(currentState, event)
+            is AccountEvent.AccountLoaded -> onAccountLoaded(currentState, event)
             is AccountEvent.Pause -> onPaused(currentState)
-            is AccountEvent.Ticker -> onTicker(currentState)
+            is AccountEvent.LoadTicker -> onTicker(currentState)
             is AccountEvent.TickerLoaded -> onTickerLoaded(currentState, event.ticker)
             is AccountEvent.PnLLoaded -> onPnLLoaded(currentState, event.pnl)
             is AccountEvent.PnLTimeChanged -> onTimeChanged(currentState, event.time)
+            is AccountEvent.AssetsSortLoaded -> onAssetsSortLoaded(currentState, event.assetsSort)
         }
     }
 
@@ -57,45 +55,40 @@ class AccountViewModel @Inject constructor(
         resumed = true
 
         viewModelScope.launch(Dispatchers.IO) {
-            getMarginAccount().collect { account ->
-                val symbols = ArrayList<String>()
-
-                account.userAssets.forEach { asset ->
-                    symbols.add("${asset.asset}${Constants.BASE_ASSET}")
+            usesCases.getMarginAccount().collect { account ->
+                val symbols = account.userAssets.map { asset ->
+                    "${asset.asset}${Constants.BASE_ASSET}"
                 }
 
-                val deferredTicker = async { getTickers(symbols) }
-                //val priceIndex = client.kLines(symbols[0], Interval.DAILY, 10)
-                val deferredInvested = async { getInvested() }
+                val deferredResults = listOf(
+                    async { usesCases.getTickers(ArrayList(listOf("BTC${Constants.BASE_ASSET}"))) },
+                    async { usesCases.getInvested() },
+                    *symbols
+                        .map { symbol -> async { usesCases.getEntryPrice(symbol) } }
+                        .toTypedArray()
+                )
 
-                val deferredEntries = ArrayList<Deferred<Double>>()
+                val results = awaitAll(*deferredResults.toTypedArray())
 
-                account.userAssets.forEach { asset ->
-                    val symbol = "${asset.asset}${Constants.BASE_ASSET}"
-                    deferredEntries.add(async { getEntryPrice(symbol) })
-                }
-
-                val ticker = deferredTicker.await()
-                val invested = deferredInvested.await()
-                val entries = ArrayList<Entry>()
-                deferredEntries.awaitAll().forEachIndexed { index, entry ->
-                    val symbol = "${account.userAssets[index].asset}${Constants.BASE_ASSET}"
-                    entries.add(
+                val ticker = (results[0] as List<*>).filterIsInstance<Ticker>()
+                val invested = results[1] as Double
+                val entries = (results.subList(2, results.size) as List<*>)
+                    .filterIsInstance<Double>()
+                    .mapIndexed { index, entry ->
                         Entry(
-                            symbol = symbol,
+                            symbol = symbols[index],
                             entry = entry
                         )
-                    )
-                }
+                    }
 
-                state.handleEvent(AccountEvent.AccountLoaded(account, ticker, invested, entries))
+                val btcPrice = runCatching {
+                    ticker.first { it.symbol == "BTC${Constants.BASE_ASSET}" }.price
+                }.getOrElse { .0 }
+
+                state.handleEvent(AccountEvent.AccountLoaded(account, btcPrice, invested, entries))
+                state.handleEvent(AccountEvent.LoadTicker)
+                state.handleEvent(AccountEvent.PnLTimeChanged(usesCases.getPnlTimeUseCase()))
             }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val pnl = getPnL(currentState.pnlTime)
-            state.handleEvent(AccountEvent.PnLLoaded(pnl))
-
         }
         return currentState.copy(isLoading = true)
     }
@@ -105,20 +98,12 @@ class AccountViewModel @Inject constructor(
         return currentState
     }
 
-    private fun onLoaded(
+    private fun onAccountLoaded(
         currentState: AccountState,
         event: AccountEvent.AccountLoaded
     ): AccountState {
-        if (resumed) {
-            state.handleEvent(AccountEvent.Ticker)
-        }
-
         val account = event.account
-        val ticker = event.ticker
-        val btcPrice = runCatching {
-            ticker.first { it.symbol == "BTC${Constants.BASE_ASSET}" }.price
-        }.getOrElse { .0 }
-        val totalNetAssetOfUSDT = account.totalNetAssetOfBtc * btcPrice
+        val totalNetAssetOfUSDT = account.totalNetAssetOfBtc * event.btcPrice
 
         val pnlPercent: Double = runCatching {
             val difference = totalNetAssetOfUSDT - event.invested
@@ -129,10 +114,9 @@ class AccountViewModel @Inject constructor(
         return currentState.copy(
             isLoading = false,
             account = event.account,
-            totalAssetOfUSDT = account.totalAssetOfBtc * btcPrice,
-            totalLiabilityOfUSDT = account.totalLiabilityOfBtc * btcPrice,
+            totalAssetOfUSDT = account.totalAssetOfBtc * event.btcPrice,
+            totalLiabilityOfUSDT = account.totalLiabilityOfBtc * event.btcPrice,
             totalNetAssetOfUSDT = totalNetAssetOfUSDT,
-            ticker = event.ticker,
             invested = event.invested,
             pnl = totalNetAssetOfUSDT - event.invested,
             pnlPercent = pnlPercent,
@@ -141,14 +125,15 @@ class AccountViewModel @Inject constructor(
     }
 
     private fun onTicker(currentState: AccountState): AccountState {
-        viewModelScope.launch(Dispatchers.IO) {
+        tickerJob?.cancel()
+        tickerJob = viewModelScope.launch(Dispatchers.IO) {
             delay(500L)
             val symbols = ArrayList<String>()
 
             currentState.account.userAssets.forEach { asset ->
                 symbols.add("${asset.asset}${Constants.BASE_ASSET}")
             }
-            val ticker = getTickers(symbols)
+            val ticker = usesCases.getTickers(symbols)
 
             state.handleEvent(AccountEvent.TickerLoaded(ticker))
         }
@@ -157,14 +142,14 @@ class AccountViewModel @Inject constructor(
 
     private fun onTickerLoaded(currentState: AccountState, ticker: List<Ticker>): AccountState {
         if (resumed) {
-            state.handleEvent(AccountEvent.Ticker)
+            state.handleEvent(AccountEvent.LoadTicker)
         }
         return currentState.copy(ticker = ticker)
     }
 
     private fun onPnLLoaded(
         currentState: AccountState,
-        pnl: List<PnL>
+        pnl: List<Float>
     ): AccountState {
         return currentState.copy(pnlEntries = pnl)
     }
@@ -174,9 +159,21 @@ class AccountViewModel @Inject constructor(
         time: PnLTimeType
     ): AccountState {
         viewModelScope.launch(Dispatchers.IO) {
-            val pnl = getPnL(time)
+            usesCases.putPnlTime(time)
+            val pnl = usesCases.getPnL(time).map { it.pnl.toFloat() }.toMutableList()
+            pnl.add(currentState.pnl.toFloat())
             state.handleEvent(AccountEvent.PnLLoaded(pnl))
         }
         return currentState.copy(pnlTime = time)
+    }
+
+    private fun onAssetsSortLoaded(
+        currentState: AccountState,
+        assetsSort: AssertSort
+    ): AccountState {
+        viewModelScope.launch(Dispatchers.IO) {
+            usesCases.putAssetsSort(assetsSort)
+        }
+        return currentState.copy(assetsSort = assetsSort)
     }
 }

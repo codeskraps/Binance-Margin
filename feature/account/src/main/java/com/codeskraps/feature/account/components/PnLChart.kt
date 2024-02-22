@@ -1,5 +1,6 @@
 package com.codeskraps.feature.account.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +18,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.codeskraps.core.domain.R
-import com.codeskraps.core.domain.model.PnL
 import com.codeskraps.core.domain.model.PnLTimeType
 import com.codeskraps.feature.account.mvi.AccountEvent
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -39,16 +39,14 @@ import kotlin.math.roundToInt
 
 @Composable
 fun PnLChart(
-    pnl: List<PnL>,
-    currentPnl: Double,
+    entries: List<Float>,
     pnlTime: PnLTimeType,
     handleEvent: (AccountEvent) -> Unit
 ) {
 
-    val entries = listOf(*pnl.map { it.pnl.toFloat() }.toTypedArray(), currentPnl.toFloat())
     val chartEntryModel = entryModelOf(*entries.toTypedArray())
     val lineColor = colorResource(id = R.color.margin_level_red.takeIf {
-        pnl.first().pnl > currentPnl
+        entries.first() > entries.last()
     } ?: R.color.margin_level_green)
 
     val verticalAxisValueFormatter =
@@ -62,8 +60,8 @@ fun PnLChart(
 
     val axisOverride = AxisValuesOverrider.fixed(
         maxX = entries.size.toFloat() - 1,
-        maxY = (entries.max() * 1.1f).toInt().toFloat(),
-        minY = (entries.min() - (entries.min().absoluteValue * 0.1)).toInt().toFloat(),
+        maxY = (entries.max() + (entries.max().absoluteValue * 0.01f)).toInt().toFloat(),
+        minY = (entries.min() - (entries.min().absoluteValue * 0.01)).toInt().toFloat(),
         minX = .0f
     )
 
@@ -125,10 +123,17 @@ fun PnLTimeButton(
     handleEvent: (AccountEvent) -> Unit
 ) {
     val selected = currentPnLTimeType == pnlTime
+
+    val color = if (isSystemInDarkTheme()) {
+        Color.Black.takeIf { selected } ?: Color.DarkGray
+    } else {
+        Color.White.takeIf { selected } ?: Color.LightGray
+    }
+
     OutlinedButton(
         onClick = { handleEvent(AccountEvent.PnLTimeChanged(pnlTime)) },
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black.takeIf { selected } ?: Color.DarkGray
+            containerColor = color
         ),
         shape = MaterialTheme.shapes.small
     ) {

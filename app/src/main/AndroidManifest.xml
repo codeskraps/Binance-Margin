@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Binance">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Binance">
             <intent-filter>
@@ -23,7 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name="com.codeskraps.core.domain.pnl.PnLTaskReceiver" />
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
@@ -17,7 +16,7 @@ import java.util.Calendar
 class PnLTaskReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.i(TAG, "onReceive: ")
+        //Log.i(TAG, "onReceive: ")
         context?.let {
             WorkManager.getInstance(it).run {
 
@@ -35,7 +34,7 @@ class PnLTaskReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        private val TAG = PnLTaskReceiver::class.java.simpleName
+        //private val TAG = PnLTaskReceiver::class.java.simpleName
 
         fun setPnLAlarm(context: Context) {
             (context.getSystemService(Application.ALARM_SERVICE) as AlarmManager).run {
@@ -44,6 +43,11 @@ class PnLTaskReceiver : BroadcastReceiver() {
                     set(Calendar.SECOND, 0)
                     add(Calendar.HOUR_OF_DAY, 1)
                 }
+
+
+                /*val testCalendar: Calendar = Calendar.getInstance().apply {
+                    add(Calendar.MINUTE, 1)
+                }*/
 
                 //Log.i(TAG, "setPnLAlarm: ${testCalendar.timeInMillis} ${calendar.timeInMillis}")
 

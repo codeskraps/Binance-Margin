@@ -1,6 +1,5 @@
 import com.codeskraps.binance.ConfigData
 
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.android)
@@ -45,7 +44,6 @@ android {
 }
 
 dependencies {
-    implementation(project(mapOf("path" to ":core:client")))
     implementation(project(mapOf("path" to ":core:domain")))
 
     val platform = platform(libs.androidx.compose.bom)

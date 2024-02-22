@@ -3,11 +3,11 @@ andoix-compose-bom = "2024.02.00"
 activity-compose = "1.8.2"
 androidx-junit = "1.1.5"
 binance-connector-java = "3.2.0"
-compose = "1.13.1"
+vico-compose = "1.13.1"
 core-ktx = "1.12.0"
 espresso-core = "3.5.1"
 hilt-android = "2.50"
-hilt-work = "1.1.0"
+hilt-work = "1.2.0"
 junit = "4.13.2"
 realm_kotlin = "1.13.0"
 lifecycle-runtime-ktx = "2.7.0"
@@ -44,10 +44,11 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work-runtime" }
 binance-connector-java = { module = "io.github.binance:binance-connector-java", version.ref = "binance-connector-java" }
-vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "compose" }
-vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "compose" }
+vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico-compose" }
+vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico-compose" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-android" }
+hilt-android-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt-work" }
 junit = { module = "junit:junit", version.ref = "junit" }
 realm-library-base = { module = "io.realm.kotlin:library-base", version.ref = "realm_kotlin" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }

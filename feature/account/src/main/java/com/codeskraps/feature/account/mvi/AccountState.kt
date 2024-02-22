@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.codeskraps.core.domain.R
+import com.codeskraps.core.domain.model.AssertSort
 import com.codeskraps.core.domain.model.Asset
 import com.codeskraps.core.domain.model.MarginAccount
 import com.codeskraps.core.domain.model.PnL
@@ -23,8 +24,9 @@ data class AccountState(
     val pnlPercent: Double,
     val ticker: List<Ticker>,
     val entries: List<Entry>,
-    val pnlEntries: List<PnL>,
-    val pnlTime: PnLTimeType
+    val pnlEntries: List<Float>,
+    val pnlTime: PnLTimeType,
+    val assetsSort: AssertSort
 ) {
     companion object {
         val initial = AccountState(
@@ -39,7 +41,8 @@ data class AccountState(
             ticker = emptyList(),
             entries = emptyList(),
             pnlEntries = emptyList(),
-            pnlTime = PnLTimeType.DAY
+            pnlTime = PnLTimeType.DAY,
+            assetsSort = AssertSort.Value
         )
     }
 
@@ -126,9 +129,9 @@ data class AccountState(
     fun marginLevelColor(): Color {
         return colorResource(
             id =
-            if (account.marginLevel > 2)
+            if (account.marginLevel >= 2)
                 R.color.margin_level_green
-            else if (account.marginLevel > 1.25) {
+            else if (account.marginLevel >= 1.25) {
                 R.color.margin_level_amber
             } else {
                 R.color.margin_level_red
@@ -139,9 +142,9 @@ data class AccountState(
     fun decimal(asset: Asset): Int {
         return when (asset.asset) {
             "BONK" -> 8
-            "MANTA" -> 5
-            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "TRX" -> 4
-            "LINK", "FIL", "ATOM" -> 3
+            "MANTA", "VET" -> 5
+            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "TRX", "FTM", "ALGO", "SUPER" -> 4
+            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR" -> 3
             "BNB", "BTC", "ETH" -> 1
             else -> 2
         }
@@ -150,8 +153,8 @@ data class AccountState(
     @Composable
     fun pnlColor(pnl: Double): Color {
         return colorResource(
-            id = if (pnl > 1) R.color.margin_level_green
-            else if (pnl > 0) R.color.margin_level_amber
+            id = if (pnl >= 1) R.color.margin_level_green
+            else if (pnl >= 0) R.color.margin_level_amber
             else R.color.margin_level_red
         )
     }
