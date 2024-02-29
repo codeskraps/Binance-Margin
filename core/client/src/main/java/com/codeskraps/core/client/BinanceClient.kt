@@ -222,7 +222,12 @@ class BinanceClient @Inject constructor(
                     toMerge.forEach {
                         trade = trade.copy(
                             qty = trade.qty + it.qty,
-                            price = (trade.price + it.price) / 2
+                            price = calculateAverageEntryPrice(
+                                trade.qty,
+                                trade.price,
+                                it.qty,
+                                it.price
+                            )
                         )
                     }
                     trades.removeAll(toMerge)
