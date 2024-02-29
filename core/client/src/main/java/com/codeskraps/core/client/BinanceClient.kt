@@ -14,6 +14,10 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 
@@ -181,12 +185,16 @@ class BinanceClient @Inject constructor(
         }.getOrElse { store.invested.toDouble() }
     }
 
-    fun trades(symbols: List<String>): List<TradeDto> {
-        val allTrades = mutableListOf<TradeDto>()
-        symbols.forEach { symbol ->
-            allTrades.addAll(trades(symbol))
+    suspend fun trades(symbols: List<String>): List<TradeDto> {
+        return coroutineScope {
+            val allTrades = mutableListOf<TradeDto>()
+            val deferredResults = symbols.map { symbol -> async { trades(symbol) } }
+
+            val results = awaitAll(*deferredResults.toTypedArray())
+            results.forEach { allTrades.addAll(it) }
+
+            return@coroutineScope allTrades.sortedBy { it.time }.reversed()
         }
-        return allTrades.sortedBy { it.time }.reversed()
     }
 
     private fun trades(symbol: String): List<TradeDto> {
@@ -227,15 +235,17 @@ class BinanceClient @Inject constructor(
         }.getOrElse { emptyList() }
     }
 
-    fun orders(symbols: List<String>): List<OrderDto> {
-        val allTrades = mutableListOf<OrderDto>()
-        symbols.forEach { symbol ->
-            allTrades.addAll(orders(symbol))
+    suspend fun orders(symbols: List<String>): List<OrderDto> {
+        return coroutineScope {
+            val allTrades = mutableListOf<OrderDto>()
+            val deferredResults = symbols.map { symbol -> async { orders(symbol) } }
+            val result = awaitAll(*deferredResults.toTypedArray())
+            result.forEach { allTrades.addAll(it) }
+            return@coroutineScope allTrades.sortedBy { it.time }.reversed()
         }
-        return allTrades.sortedBy { it.time }.reversed()
     }
 
-    fun orders(symbol: String): List<OrderDto> {
+    private fun orders(symbol: String): List<OrderDto> {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbol"] = symbol
