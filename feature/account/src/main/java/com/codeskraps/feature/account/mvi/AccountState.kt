@@ -100,9 +100,8 @@ data class AccountState(
         return runCatching {
             if (investedAsset(asset) == .0) .0
             else {
-                val difference = value(asset) - investedAsset(asset)
-                val average = (value(asset) + investedAsset(asset)) / 2
-                (difference / average) * 100
+                val investedAsset = investedAsset(asset)
+                ((value(asset) - investedAsset) / investedAsset) * 100
             }
         }.getOrElse { .0 }
     }

@@ -99,18 +99,26 @@ fun AccountScreen(
                     .padding(start = 10.dp, end = 10.dp, top = 10.dp)
             ) {
                 state.account.let { acc ->
-                    Text(text = "Total Balance")
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-                        Text(text = "$ ${state.totalAssetOfUSDT.format(2)}", fontSize = 28.sp)
+                        Column {
+                            Text(text = "Total Balance")
+                            Text(text = "$ ${state.totalAssetOfUSDT.format(2)}", fontSize = 28.sp)
+                        }
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = "PnL: $${
-                                state.pnl.format(2)
-                            }  ${state.pnlPercent.format(2)}%",
-                            textAlign = TextAlign.End,
-                            fontSize = 18.sp,
-                            color = state.pnlColor(pnl = state.pnlPercent)
-                        )
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "${state.pnlPercent.format(2)}%",
+                                textAlign = TextAlign.End,
+                                fontSize = 18.sp,
+                                color = state.pnlColor(pnl = state.pnlPercent)
+                            )
+                            Text(
+                                text = "PnL: $ ${state.pnl.format(2)}",
+                                textAlign = TextAlign.End,
+                                fontSize = 18.sp,
+                                color = state.pnlColor(pnl = state.pnlPercent)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.width(5.dp))
                     Spacer(

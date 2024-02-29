@@ -106,9 +106,7 @@ class AccountViewModel @Inject constructor(
         val totalNetAssetOfUSDT = account.totalNetAssetOfBtc * event.btcPrice
 
         val pnlPercent: Double = runCatching {
-            val difference = totalNetAssetOfUSDT - event.invested
-            val average = (totalNetAssetOfUSDT + event.invested) / 2
-            (difference / average) * 100
+            ((totalNetAssetOfUSDT - event.invested) / event.invested) * 100
         }.getOrElse { .0 }
 
         return currentState.copy(
