@@ -4,8 +4,8 @@ import android.util.Log
 import com.codeskraps.core.domain.mappers.toPnL
 import com.codeskraps.core.domain.model.PnL
 import com.codeskraps.core.domain.model.PnLTimeType
-import com.codeskraps.core.realm.PnLDailyDao
-import com.codeskraps.core.realm.PnLHourlyDao
+import com.codeskraps.core.realm.dao.PnLDailyDao
+import com.codeskraps.core.realm.dao.PnLHourlyDao
 import com.codeskraps.core.realm.model.PnLEntity
 import javax.inject.Inject
 

@@ -1,15 +1,15 @@
 package com.codeskraps.core.realm.di
 
-import com.codeskraps.core.realm.MarginAccountDao
-import com.codeskraps.core.realm.MarginAccountDaoImpl
-import com.codeskraps.core.realm.OrderDao
-import com.codeskraps.core.realm.OrderDaoImpl
-import com.codeskraps.core.realm.PnLDailyDao
-import com.codeskraps.core.realm.PnLDailyDaoImpl
-import com.codeskraps.core.realm.PnLHourlyDao
-import com.codeskraps.core.realm.PnLHourlyDaoImpl
-import com.codeskraps.core.realm.TradeDao
-import com.codeskraps.core.realm.TradeDaoImpl
+import com.codeskraps.core.realm.dao.MarginAccountDao
+import com.codeskraps.core.realm.dao.MarginAccountDaoImpl
+import com.codeskraps.core.realm.dao.OrderDao
+import com.codeskraps.core.realm.dao.OrderDaoImpl
+import com.codeskraps.core.realm.dao.PnLDailyDao
+import com.codeskraps.core.realm.dao.PnLDailyDaoImpl
+import com.codeskraps.core.realm.dao.PnLHourlyDao
+import com.codeskraps.core.realm.dao.PnLHourlyDaoImpl
+import com.codeskraps.core.realm.dao.TradeDao
+import com.codeskraps.core.realm.dao.TradeDaoImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

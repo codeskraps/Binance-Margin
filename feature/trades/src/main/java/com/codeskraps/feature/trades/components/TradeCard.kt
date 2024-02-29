@@ -62,7 +62,7 @@ fun TradeCard(trade: Trade) {
             )
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
-                Text("price: ${trade.price}")
+                Text("price: ${trade.price.format(StateUtil.decimal(trade.symbol))}")
                 Spacer(modifier = Modifier.weight(1f))
                 Text("value: $${(trade.qty * trade.price).format(2)}")
             }

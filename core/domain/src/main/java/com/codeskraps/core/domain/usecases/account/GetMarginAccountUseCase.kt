@@ -3,7 +3,7 @@ package com.codeskraps.core.domain.usecases.account
 import com.codeskraps.core.domain.mappers.toMarginAccount
 import com.codeskraps.core.domain.mappers.toMarginAccountEntity
 import com.codeskraps.core.domain.model.MarginAccount
-import com.codeskraps.core.realm.MarginAccountDao
+import com.codeskraps.core.realm.dao.MarginAccountDao
 import com.codeskraps.core.realm.model.MarginAccountEntity
 import io.realm.kotlin.notifications.ResultsChange
 import kotlinx.coroutines.ExperimentalCoroutinesApi

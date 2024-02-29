@@ -4,7 +4,7 @@ import com.codeskraps.core.client.BinanceClient
 import com.codeskraps.core.domain.mappers.toTrade
 import com.codeskraps.core.domain.mappers.toTradeEntity
 import com.codeskraps.core.domain.model.Trade
-import com.codeskraps.core.realm.TradeDao
+import com.codeskraps.core.realm.dao.TradeDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flattenMerge

@@ -6,8 +6,8 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.codeskraps.core.client.BinanceClient
-import com.codeskraps.core.realm.PnLDailyDao
-import com.codeskraps.core.realm.PnLHourlyDao
+import com.codeskraps.core.realm.dao.PnLDailyDao
+import com.codeskraps.core.realm.dao.PnLHourlyDao
 import com.codeskraps.core.realm.model.PnLHourlyEntity
 import com.codeskraps.core.realm.model.PnlDailyEntity
 import dagger.assisted.Assisted

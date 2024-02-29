@@ -4,7 +4,7 @@ import com.codeskraps.core.client.BinanceClient
 import com.codeskraps.core.domain.mappers.toOrder
 import com.codeskraps.core.domain.mappers.toOrderEntity
 import com.codeskraps.core.domain.model.Order
-import com.codeskraps.core.realm.OrderDao
+import com.codeskraps.core.realm.dao.OrderDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flattenMerge

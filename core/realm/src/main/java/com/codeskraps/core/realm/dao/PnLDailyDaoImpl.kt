@@ -1,4 +1,4 @@
-package com.codeskraps.core.realm
+package com.codeskraps.core.realm.dao
 
 import com.codeskraps.core.realm.model.PnlDailyEntity
 import io.realm.kotlin.Realm

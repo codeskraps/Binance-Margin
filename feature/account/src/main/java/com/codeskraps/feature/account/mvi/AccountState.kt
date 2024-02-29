@@ -139,17 +139,6 @@ data class AccountState(
         )
     }
 
-    fun decimal(asset: Asset): Int {
-        return when (asset.asset) {
-            "BONK" -> 8
-            "MANTA", "VET" -> 5
-            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "TRX", "FTM", "ALGO", "SUPER" -> 4
-            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR" -> 3
-            "BNB", "BTC", "ETH" -> 1
-            else -> 2
-        }
-    }
-
     @Composable
     fun pnlColor(pnl: Double): Color {
         return colorResource(

@@ -5,9 +5,9 @@ import io.realm.kotlin.types.annotations.PrimaryKey
 
 open class TradeEntity() : RealmObject {
     @PrimaryKey
+    var id: Long = 0
     var orderId: Long = 0
     var symbol: String = ""
-    var id: Long = 0
     var price: Double = 0.0
     var qty: Double = 0.0
     var quoteQty: Double = 0.0

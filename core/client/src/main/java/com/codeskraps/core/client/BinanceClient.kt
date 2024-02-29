@@ -189,7 +189,7 @@ class BinanceClient @Inject constructor(
         return allTrades.sortedBy { it.time }.reversed()
     }
 
-    fun trades(symbol: String): List<TradeDto> {
+    private fun trades(symbol: String): List<TradeDto> {
         return runCatching {
             if (!badSymbols().contains(symbol)) {
                 val parameters: MutableMap<String, Any> = LinkedHashMap()
@@ -201,10 +201,27 @@ class BinanceClient @Inject constructor(
                     TradeDto::class.java
                 )
                 val jsonAdapter: JsonAdapter<List<TradeDto>> = moshi.adapter(listMyData)
-                return@runCatching jsonAdapter.fromJson(json)
+                val trades = jsonAdapter.fromJson(json)
                     ?.filter { it.time >= store.startDate }
-                    ?.sortedBy { it.time }?.reversed()
-                    ?: emptyList()
+                    ?.sortedBy { it.time }?.reversed()?.toMutableList()
+                    ?: emptyList<TradeDto>().toMutableList()
+
+                val mergedTrades = mutableListOf<TradeDto>()
+
+                while (trades.isNotEmpty()) {
+                    var trade = trades.removeFirst()
+                    val toMerge = trades.filter { it.orderId == trade.orderId }
+                    toMerge.forEach {
+                        trade = trade.copy(
+                            qty = trade.qty + it.qty,
+                            price = (trade.price + it.price) / 2
+                        )
+                    }
+                    trades.removeAll(toMerge)
+                    mergedTrades.add(trade)
+                }
+
+                return@runCatching mergedTrades.toList()
             }
             return@runCatching emptyList<TradeDto>()
         }.getOrElse { emptyList() }

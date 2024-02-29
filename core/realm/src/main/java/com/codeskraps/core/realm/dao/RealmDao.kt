@@ -1,4 +1,4 @@
-package com.codeskraps.core.realm
+package com.codeskraps.core.realm.dao
 
 import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy

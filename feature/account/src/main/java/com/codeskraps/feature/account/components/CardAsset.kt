@@ -76,7 +76,7 @@ fun CardAsset(state: AccountState, asset: com.codeskraps.core.domain.model.Asset
                     Text(text = "${state.investedAssetPercent(asset).format(2)}%")
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    val decimal = state.decimal(asset)
+                    val decimal = StateUtil.decimal(asset)
                     Text(text = "price $${state.price(asset).format(decimal)}")
                     Spacer(modifier = Modifier.weight(1f))
                     Text(text = "entry $${state.entry(asset).format(decimal)}")
