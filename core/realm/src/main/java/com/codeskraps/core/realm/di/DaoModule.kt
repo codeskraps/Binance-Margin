@@ -10,6 +10,8 @@ import com.codeskraps.core.realm.dao.PnLHourlyDao
 import com.codeskraps.core.realm.dao.PnLHourlyDaoImpl
 import com.codeskraps.core.realm.dao.TradeDao
 import com.codeskraps.core.realm.dao.TradeDaoImpl
+import com.codeskraps.core.realm.dao.TransferDao
+import com.codeskraps.core.realm.dao.TransferDaoImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -33,4 +35,7 @@ interface DaoModule {
 
     @Binds
     fun bindOrderDao(impl: OrderDaoImpl): OrderDao
+
+    @Binds
+    fun bindTransferDao(impl: TransferDaoImpl): TransferDao
 }

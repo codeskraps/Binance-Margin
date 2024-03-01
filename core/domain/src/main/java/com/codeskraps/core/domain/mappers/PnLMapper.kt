@@ -8,3 +8,9 @@ fun PnLEntity.toPnL() = PnL(
     invested = invested(),
     totalAssetOfUSDT = totalAssetOfUSDT()
 )
+
+fun PnL.toPnLEntity() = PnL(
+    time = time,
+    invested = invested,
+    totalAssetOfUSDT = totalAssetOfUSDT
+)

@@ -7,6 +7,7 @@ import com.codeskraps.core.realm.model.OrderEntity
 import com.codeskraps.core.realm.model.PnLHourlyEntity
 import com.codeskraps.core.realm.model.PnlDailyEntity
 import com.codeskraps.core.realm.model.TradeEntity
+import com.codeskraps.core.realm.model.TransferEntity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,10 +31,11 @@ object RealmModule {
                 PnLHourlyEntity::class,
                 PnlDailyEntity::class,
                 TradeEntity::class,
-                OrderEntity::class
+                OrderEntity::class,
+                TransferEntity::class
             )
         )
-            .schemaVersion(3)
+            .schemaVersion(6)
             .migration(BinanceRealmMigration())
             .build()
 

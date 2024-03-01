@@ -9,7 +9,8 @@ import com.codeskraps.core.client.model.MarginAccountDto
 import com.codeskraps.core.client.model.OrderDto
 import com.codeskraps.core.client.model.TickerDto
 import com.codeskraps.core.client.model.TradeDto
-import com.codeskraps.core.client.model.TransferHistory
+import com.codeskraps.core.client.model.TransferDto
+import com.codeskraps.core.client.model.TransferHistoryDto
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -17,7 +18,6 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 
@@ -108,82 +108,19 @@ class BinanceClient @Inject constructor(
         }.getOrElse { emptyList() }
     }
 
-    private fun transferHistory(): TransferHistory {
+    private fun transferHistory(): TransferHistoryDto {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
+            parameters["startTime"] = store.startDate
             val json = margin.transferHistory(parameters)
 
-            val jsonAdapter: JsonAdapter<TransferHistory> =
-                moshi.adapter(TransferHistory::class.java)
-            return@runCatching jsonAdapter.fromJson(json) ?: TransferHistory()
-        }.getOrElse { TransferHistory() }
+            val jsonAdapter: JsonAdapter<TransferHistoryDto> =
+                moshi.adapter(TransferHistoryDto::class.java)
+            return@runCatching jsonAdapter.fromJson(json) ?: TransferHistoryDto()
+        }.getOrElse { TransferHistoryDto() }
     }
 
-    fun invested(): Double {
-        return runCatching {
-            val transferHistory = transferHistory()
-            //Log.i(TAG, transferHistory.toString())
-            val lastTransfer = transferHistory.rows.maxOfOrNull { it.timestamp }
-                ?: return store.invested.toDouble()
-
-            return@runCatching if (store.lastTransferParsed == 0L
-                || store.lastTransferParsed != lastTransfer
-            ) {
-                val symbols = ArrayList<String>()
-
-                transferHistory.rows.forEach { transfer ->
-                    symbols.add("${transfer.asset}$BASE_ASSET")
-                }
-
-                val ticker = tickerSymbol(symbols)
-
-                var index = 0
-                val sorted = transferHistory.rows.filter { it.timestamp >= store.startDate }
-                    .sortedBy { it.timestamp }.reversed()
-                var invested = .0
-
-                while (index < sorted.size && sorted[index].timestamp != store.lastTransferParsed) {
-                    val transfer = sorted[index]
-                    when (transfer.type) {
-                        "ROLL_OUT" -> {
-                            if (store.lastTransferParsed != 0L) {
-                                invested -= if (transfer.asset == BASE_ASSET) {
-                                    transfer.amount
-                                } else {
-                                    transfer.amount * ticker.first { it.symbol == "${transfer.asset}$BASE_ASSET" }.price
-                                }
-                            }
-                        }
-
-                        "ROLL_IN" -> {
-                            invested += when (transfer.asset) {
-                                "BONK" -> {
-                                    50.0
-                                }
-
-                                BASE_ASSET -> {
-                                    transfer.amount
-                                }
-
-                                else -> {
-                                    val t =
-                                        ticker.first { it.symbol == "${transfer.asset}$BASE_ASSET" }
-                                    transfer.amount * t.price
-                                }
-                            }
-                        }
-                    }
-                    index++
-                }
-
-                store.invested += invested.toFloat()
-                store.lastTransferParsed = lastTransfer
-                invested
-            } else {
-                store.invested.toDouble()
-            }
-        }.getOrElse { store.invested.toDouble() }
-    }
+    fun transfers(): List<TransferDto> = transferHistory().rows
 
     suspend fun trades(symbols: List<String>): List<TradeDto> {
         return coroutineScope {
@@ -268,68 +205,6 @@ class BinanceClient @Inject constructor(
                 ?.sortedBy { it.time }?.reversed()
                 ?: emptyList()
         }.getOrElse { emptyList() }
-    }
-
-    fun entryPrice(symbol: String): Double {
-        return runCatching {
-            val trades = trades(symbol).reversed()
-            var avgPrice = .0
-            var totalQty = .0
-
-            if (trades.isEmpty()) {
-                if (symbol == "BONKUSDT") return@runCatching 0.00001063
-                else return@runCatching .0
-            } else if (symbol == "BONKUSDT") {
-                avgPrice = 0.00001063
-                totalQty = 4703668.0
-            }
-
-            trades.forEach { trade ->
-
-                if (trade.isBuyer && totalQty + trade.qty > .0) {
-                    // opening longs
-                    if (totalQty == .0) {
-                        totalQty = trade.qty
-                        avgPrice = trade.price
-                    } else {
-                        avgPrice = calculateAverageEntryPrice(
-                            holdingQuantity = totalQty,
-                            holdingAveragePrice = avgPrice,
-                            tradeQuantity = trade.qty,
-                            tradePrice = trade.price
-                        )
-                        totalQty += trade.qty
-                    }
-                }
-
-                if (!trade.isBuyer && totalQty - trade.qty > .0) {
-                    // closing longs
-                    totalQty -= trade.qty
-                }
-
-                if (!trade.isBuyer && totalQty - trade.qty < .0) {
-                    // opening shorts
-                    if (totalQty == .0) {
-                        totalQty = -trade.qty
-                        avgPrice = trade.price
-                    } else {
-                        avgPrice = calculateAverageEntryPrice(
-                            holdingQuantity = totalQty.absoluteValue,
-                            holdingAveragePrice = avgPrice,
-                            tradeQuantity = trade.qty,
-                            tradePrice = trade.price
-                        )
-                        totalQty -= trade.qty
-                    }
-                }
-
-                if (trade.isBuyer && totalQty + trade.qty < .0) {
-                    // closing shorts
-                    totalQty += trade.qty
-                }
-            }
-            return@runCatching avgPrice
-        }.getOrElse { .0 }
     }
 
     private fun sanitizeSymbols(symbols: ArrayList<String>): ArrayList<String> {

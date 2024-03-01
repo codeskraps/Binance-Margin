@@ -1,11 +1,11 @@
 package com.codeskraps.core.client.model
 
-data class TransferHistory(
+data class TransferHistoryDto(
     val total: Int = 0,
-    val rows: List<Transfer> = emptyList()
+    val rows: List<TransferDto> = emptyList()
 )
 
-data class Transfer(
+data class TransferDto(
     val timestamp: Long,
     val asset: String,
     val amount: Double,

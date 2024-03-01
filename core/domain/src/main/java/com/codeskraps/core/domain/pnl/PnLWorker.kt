@@ -6,12 +6,14 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.codeskraps.core.client.BinanceClient
+import com.codeskraps.core.domain.usecases.account.GetInvestedUseCase
 import com.codeskraps.core.realm.dao.PnLDailyDao
 import com.codeskraps.core.realm.dao.PnLHourlyDao
 import com.codeskraps.core.realm.model.PnLHourlyEntity
 import com.codeskraps.core.realm.model.PnlDailyEntity
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 
 @HiltWorker
@@ -19,6 +21,7 @@ class PnLWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val client: BinanceClient,
+    private val investedUseCase: GetInvestedUseCase,
     private val pnLHourlyDao: PnLHourlyDao,
     private val pnLDailyDao: PnLDailyDao
 ) : CoroutineWorker(context, params) {
@@ -32,30 +35,32 @@ class PnLWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val result = runCatching {
             client.marginAccount()?.let { account ->
-                val invested = client.invested()
-                val symbols = arrayListOf("BTC${BinanceClient.BASE_ASSET}")
-                val btcPrice = client.tickerSymbol(symbols)
+                runBlocking {
+                    val invested = investedUseCase()
+                    val symbols = arrayListOf("BTC${BinanceClient.BASE_ASSET}")
+                    val btcPrice = client.tickerSymbol(symbols)
 
-                //Log.e(TAG, "doWork: $account")
+                    //Log.e(TAG, "doWork: $account")
 
-                pnLHourlyDao.update(
-                    PnLHourlyEntity(
-                        id = hourlyId(),
-                        time = roundToHour(),
-                        totalAssetOfUSDT = account.totalNetAssetOfBtc * btcPrice[0].price,
-                        invested = invested,
+                    pnLHourlyDao.update(
+                        PnLHourlyEntity(
+                            id = hourlyId(),
+                            time = roundToHour(),
+                            totalAssetOfUSDT = account.totalNetAssetOfBtc * btcPrice[0].price,
+                            invested = invested,
+                        )
                     )
-                )
-                pnLHourlyDao.deleteOlder(oneMonthInMillis)
+                    pnLHourlyDao.deleteOlder(oneMonthInMillis)
 
-                pnLDailyDao.update(
-                    PnlDailyEntity(
-                        id = dailyId(),
-                        time = roundToHour(),
-                        totalAssetOfUSDT = account.totalNetAssetOfBtc * btcPrice[0].price,
-                        invested = invested,
+                    pnLDailyDao.update(
+                        PnlDailyEntity(
+                            id = dailyId(),
+                            time = roundToHour(),
+                            totalAssetOfUSDT = account.totalNetAssetOfBtc * btcPrice[0].price,
+                            invested = invested,
+                        )
                     )
-                )
+                }
             }
 
             PnLTaskReceiver.setPnLAlarm(applicationContext)

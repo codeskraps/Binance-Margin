@@ -23,6 +23,7 @@ interface RealmDao<T : RealmObject> {
             for (entity in entities) {
                 copyToRealm(entity)
             }
+
         }
     }
 
@@ -45,12 +46,16 @@ interface RealmDao<T : RealmObject> {
     }
 
     suspend fun findById(id: String): T? {
-        return realm.query(clazz, "_id == $0", id).first().find()
+        return realm.query(clazz, "id == $0", id).first().find()
+    }
+
+    suspend fun findById(id: Long): T? {
+        return realm.query(clazz, "id == $0", id).first().find()
     }
 
     suspend fun delete(entity: T) {
         realm.write {
-            delete(entity)
+            findLatest(entity)?.let { delete(it) }
         }
     }
 

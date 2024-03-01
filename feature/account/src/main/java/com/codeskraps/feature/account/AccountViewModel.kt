@@ -62,7 +62,7 @@ class AccountViewModel @Inject constructor(
 
                 val deferredResults = listOf(
                     async { usesCases.getTickers(ArrayList(listOf("BTC${Constants.BASE_ASSET}"))) },
-                    async { usesCases.getInvested() },
+                    async { usesCases.getInvested.invoke() },
                     *symbols
                         .map { symbol -> async { usesCases.getEntryPrice(symbol) } }
                         .toTypedArray()

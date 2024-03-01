@@ -1,5 +1,6 @@
 package com.codeskraps.core.domain.usecases.account
 
+import com.codeskraps.core.client.BinanceClient
 import com.codeskraps.core.domain.mappers.toMarginAccount
 import com.codeskraps.core.domain.mappers.toMarginAccountEntity
 import com.codeskraps.core.domain.model.MarginAccount
@@ -16,7 +17,7 @@ import javax.inject.Inject
 
 class GetMarginAccountUseCase @Inject constructor(
     private val marginAccountDao: MarginAccountDao,
-    private val client: com.codeskraps.core.client.BinanceClient
+    private val client: BinanceClient
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
