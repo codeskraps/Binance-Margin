@@ -67,7 +67,7 @@ fun TransferCard(
                     fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = transfer.displayTime)
+                Text(text = transfer.displayTime())
             }
             Spacer(modifier = Modifier.height(5.dp))
             Spacer(

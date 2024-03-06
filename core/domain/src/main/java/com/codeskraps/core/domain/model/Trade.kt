@@ -1,10 +1,5 @@
 package com.codeskraps.core.domain.model
 
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
 data class Trade(
     val symbol: String,
     val id: Long,
@@ -19,13 +14,7 @@ data class Trade(
     val isMaker: Boolean,
     val isBestMatch: Boolean,
     val isIsolated: Boolean
-) {
-    private val formatter by lazy { DateTimeFormatter.ofPattern("dd/MM HH:mm:ss") }
+) : Entry() {
 
-    val displayTime: String
-        get() = runCatching {
-            val instant = Instant.ofEpochMilli(time)
-            val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-            dateTime.format(formatter)
-        }.getOrElse { "" }
+    override fun time(): Long = time
 }

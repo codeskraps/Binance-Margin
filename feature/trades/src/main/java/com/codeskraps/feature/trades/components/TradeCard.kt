@@ -51,7 +51,7 @@ fun TradeCard(trade: Trade) {
                     fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = trade.displayTime)
+                Text(text = trade.displayTime())
             }
             Spacer(modifier = Modifier.height(5.dp))
             Spacer(
