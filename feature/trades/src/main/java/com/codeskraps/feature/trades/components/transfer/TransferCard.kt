@@ -1,4 +1,4 @@
-package com.codeskraps.feature.trades.components
+package com.codeskraps.feature.trades.components.transfer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

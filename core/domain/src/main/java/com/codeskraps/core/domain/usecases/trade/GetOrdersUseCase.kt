@@ -29,7 +29,7 @@ class GetOrdersUseCase @Inject constructor(
         flow {
             client.orders(symbols).let { orders ->
                 orderDao.deleteAll()
-                orderDao.updateAll(orders.map { it.toOrderEntity() })
+                orderDao.insertAll(orders.map { it.toOrderEntity() })
                 network(true)
             }
         }

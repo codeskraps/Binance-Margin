@@ -17,6 +17,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
+    buildFeatures {
+        buildConfig = true
+    }
 
     buildTypes {
         release {
@@ -54,4 +57,8 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.realm.library.base)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

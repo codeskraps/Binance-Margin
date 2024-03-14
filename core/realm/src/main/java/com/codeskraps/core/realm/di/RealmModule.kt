@@ -2,6 +2,7 @@ package com.codeskraps.core.realm.di
 
 import com.codeskraps.core.realm.BinanceRealmMigration
 import com.codeskraps.core.realm.model.AssetEntity
+import com.codeskraps.core.realm.model.FinishedTradeEntity
 import com.codeskraps.core.realm.model.MarginAccountEntity
 import com.codeskraps.core.realm.model.OrderEntity
 import com.codeskraps.core.realm.model.PnLHourlyEntity
@@ -14,7 +15,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
-import io.realm.kotlin.migration.RealmMigration
 import javax.inject.Singleton
 
 @Module
@@ -32,10 +32,11 @@ object RealmModule {
                 PnlDailyEntity::class,
                 TradeEntity::class,
                 OrderEntity::class,
-                TransferEntity::class
+                TransferEntity::class,
+                FinishedTradeEntity::class
             )
         )
-            .schemaVersion(6)
+            .schemaVersion(10)
             .migration(BinanceRealmMigration())
             .build()
 

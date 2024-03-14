@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val usesCases: AccountUseCases
+    private val useCases: AccountUseCases
 ) : StateReducerViewModel<AccountState, AccountEvent, AccountAction>(AccountState.initial) {
 
     companion object {
@@ -29,11 +29,12 @@ class AccountViewModel @Inject constructor(
     }
 
     private var resumed = false
+    private var accountJob: Job? = null
     private var tickerJob: Job? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val assetsSort = usesCases.getAssetsSort()
+            val assetsSort = useCases.getAssetsSort()
             state.handleEvent(AccountEvent.AssetsSortLoaded(assetsSort))
         }
     }
@@ -54,17 +55,17 @@ class AccountViewModel @Inject constructor(
     private fun onResume(currentState: AccountState): AccountState {
         resumed = true
 
-        viewModelScope.launch(Dispatchers.IO) {
-            usesCases.getMarginAccount().collect { account ->
+        accountJob = viewModelScope.launch(Dispatchers.IO) {
+            useCases.getMarginAccount().collect { account ->
                 val symbols = account.userAssets.map { asset ->
                     "${asset.asset}${Constants.BASE_ASSET}"
                 }
 
                 val deferredResults = listOf(
-                    async { usesCases.getTickers(ArrayList(listOf("BTC${Constants.BASE_ASSET}"))) },
-                    async { usesCases.getInvested.invoke() },
+                    async { useCases.getTickers(ArrayList(listOf("BTC${Constants.BASE_ASSET}"))) },
+                    async { useCases.getInvested.invoke() },
                     *symbols
-                        .map { symbol -> async { usesCases.getEntryPrice(symbol) } }
+                        .map { symbol -> async { useCases.getEntryPrice(symbol) } }
                         .toTypedArray()
                 )
 
@@ -87,7 +88,7 @@ class AccountViewModel @Inject constructor(
 
                 state.handleEvent(AccountEvent.AccountLoaded(account, btcPrice, invested, entries))
                 state.handleEvent(AccountEvent.LoadTicker)
-                state.handleEvent(AccountEvent.PnLTimeChanged(usesCases.getPnlTimeUseCase()))
+                state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTimeUseCase()))
             }
         }
         return currentState.copy(isLoading = true)
@@ -95,6 +96,8 @@ class AccountViewModel @Inject constructor(
 
     private fun onPaused(currentState: AccountState): AccountState {
         resumed = false
+        accountJob?.cancel()
+        tickerJob?.cancel()
         return currentState
     }
 
@@ -106,7 +109,7 @@ class AccountViewModel @Inject constructor(
         val totalNetAssetOfUSDT = account.totalNetAssetOfBtc * event.btcPrice
 
         val pnlPercent: Double = runCatching {
-            ((totalNetAssetOfUSDT - event.invested) / event.invested) * 100
+            ((totalNetAssetOfUSDT - event.invested) / event.invested) * 100.0
         }.getOrElse { .0 }
 
         return currentState.copy(
@@ -131,7 +134,7 @@ class AccountViewModel @Inject constructor(
             currentState.account.userAssets.forEach { asset ->
                 symbols.add("${asset.asset}${Constants.BASE_ASSET}")
             }
-            val ticker = usesCases.getTickers(symbols)
+            val ticker = useCases.getTickers(symbols)
 
             state.handleEvent(AccountEvent.TickerLoaded(ticker))
         }
@@ -157,8 +160,8 @@ class AccountViewModel @Inject constructor(
         time: PnLTimeType
     ): AccountState {
         viewModelScope.launch(Dispatchers.IO) {
-            usesCases.putPnlTime(time)
-            val pnl = usesCases.getPnL(time).map { it.pnl.toFloat() }.toMutableList()
+            useCases.putPnlTime(time)
+            val pnl = useCases.getPnL(time).map { it.pnl.toFloat() }.toMutableList()
             pnl.add(currentState.pnl.toFloat())
             state.handleEvent(AccountEvent.PnLLoaded(pnl))
         }
@@ -170,7 +173,7 @@ class AccountViewModel @Inject constructor(
         assetsSort: AssertSort
     ): AccountState {
         viewModelScope.launch(Dispatchers.IO) {
-            usesCases.putAssetsSort(assetsSort)
+            useCases.putAssetsSort(assetsSort)
         }
         return currentState.copy(assetsSort = assetsSort)
     }

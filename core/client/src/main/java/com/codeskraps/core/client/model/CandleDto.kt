@@ -1,6 +1,6 @@
 package com.codeskraps.core.client.model
 
-data class Candle(
+data class CandleDto(
     val openTime: Long,
     val open: Double,
     val high: Double,

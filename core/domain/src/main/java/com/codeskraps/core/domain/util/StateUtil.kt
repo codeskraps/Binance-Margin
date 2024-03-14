@@ -44,6 +44,13 @@ object StateUtil {
             "PYR" -> R.drawable.vulkan_forged_pyr_logo
             "CAKE" -> R.drawable.pancakeswap_cake_logo
             "XRP" -> R.drawable.xrp_xrp_logo
+            "APT" -> R.drawable.aptos_apt_logo
+            "IOTA" -> R.drawable.iota_miota_logo
+            "DOGE" -> R.drawable.dogecoin_doge_logo
+            "GALA" -> R.drawable.gala_gala_logo
+            "SEI" -> R.drawable.sei_network_logo
+            "APE" -> R.drawable.apecoin_ape_ape_logo
+            "WIF" -> R.drawable.dog_wif_hat_logo
             else -> 0
         }
     }
@@ -54,10 +61,10 @@ object StateUtil {
 
     fun decimal(symbol: String): Int {
         return when (symbol.replace(BinanceClient.BASE_ASSET, "")) {
-            "BONK" -> 8
-            "MANTA", "VET" -> 5
-            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "TRX", "FTM", "ALGO", "SUPER", "XRP" -> 4
-            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE" -> 3
+            "BONK", "WIF" -> 8
+            "MANTA", "VET", "DOGE", "TRX" -> 5
+            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "FTM", "ALGO", "SUPER", "XRP", "APT", "IOTA", "GALA", "SEI" -> 4
+            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE" -> 3
             "BNB", "BTC", "ETH" -> 1
             else -> 2
         }

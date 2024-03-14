@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -32,7 +33,11 @@ fun DatePickerPreference(
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis <= System.currentTimeMillis()
+                val sixMonthsAgo = LocalDate.now()
+                    .minusMonths(6)
+                    .plusDays(1).toEpochDay()
+
+                return utcTimeMillis <= System.currentTimeMillis() && utcTimeMillis >= sixMonthsAgo
             }
         }
     )

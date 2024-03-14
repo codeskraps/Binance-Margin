@@ -7,7 +7,6 @@ import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.AssertSort
 import com.codeskraps.core.domain.model.Asset
 import com.codeskraps.core.domain.model.MarginAccount
-import com.codeskraps.core.domain.model.PnL
 import com.codeskraps.core.domain.model.Ticker
 import com.codeskraps.core.domain.util.Constants
 import com.codeskraps.feature.account.model.Entry
@@ -46,7 +45,7 @@ data class AccountState(
         )
     }
 
-    val investedAssets: Double
+    val entryValueAssets: Double
         get() = runCatching {
             var totalValue = .0
             account.userAssets.filter { it.asset != Constants.BASE_ASSET }.forEach { asset ->
@@ -55,9 +54,18 @@ data class AccountState(
             totalValue
         }.getOrElse { .0 }
 
-    fun investedAssetPercent(asset: Asset): Double {
+    val valueAssets: Double
+        get() = runCatching {
+            var totalValue = .0
+            account.userAssets.filter { it.asset != Constants.BASE_ASSET }.forEach { asset ->
+                totalValue += value(asset)
+            }
+            totalValue
+        }.getOrElse { .0 }
+
+    fun valueAssetPercent(asset: Asset): Double {
         return runCatching {
-            (investedAsset(asset) / invested) * 100
+            (value(asset) / valueAssets) * 100
         }.getOrElse { .0 }
     }
 
@@ -73,7 +81,8 @@ data class AccountState(
 
     fun price(asset: Asset): Double {
         return runCatching {
-            ticker.first { it.symbol == "${asset.asset}${Constants.BASE_ASSET}" }.price
+            if (asset.asset == Constants.BASE_ASSET) 1.0
+            else ticker.first { it.symbol == "${asset.asset}${Constants.BASE_ASSET}" }.price
         }.getOrElse { .0 }
     }
 

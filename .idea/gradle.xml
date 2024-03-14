@@ -28,6 +28,7 @@
             <option value="$PROJECT_DIR$/core/realm" />
             <option value="$PROJECT_DIR$/feature" />
             <option value="$PROJECT_DIR$/feature/account" />
+            <option value="$PROJECT_DIR$/feature/pnl" />
             <option value="$PROJECT_DIR$/feature/settings" />
             <option value="$PROJECT_DIR$/feature/trades" />
           </set>

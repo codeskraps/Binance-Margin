@@ -1,5 +1,6 @@
 package com.codeskraps.feature.trades.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -17,16 +18,23 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.codeskraps.core.domain.R
+import com.codeskraps.feature.trades.components.order.OrdersScreen
+import com.codeskraps.feature.trades.components.trade.TradesScreen
+import com.codeskraps.feature.trades.components.transfer.TransfersScreen
 import com.codeskraps.feature.trades.mvi.TradeEvent
 import com.codeskraps.feature.trades.mvi.TradesState
 
@@ -39,11 +47,29 @@ fun TradeScreen(
 ) {
     LifecycleResumeEffect(Unit) {
         handleEvent(TradeEvent.Resume)
-        onPauseOrDispose {}
+        onPauseOrDispose {
+            handleEvent(TradeEvent.Pause)
+        }
     }
 
+    val configuration = LocalConfiguration.current
+
+    val scrollBehavior = when (configuration.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState()
+        )
+
+        Configuration.ORIENTATION_PORTRAIT -> TopAppBarDefaults.enterAlwaysScrollBehavior(
+            rememberTopAppBarState()
+        )
+
+        else -> TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    }
+
+    val scaffoldModifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+
     Scaffold(
-        modifier = modifier,
+        modifier = scaffoldModifier,
         topBar = {
             TopAppBar(
                 navigationIcon = {
@@ -63,7 +89,9 @@ fun TradeScreen(
                             .padding(10.dp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                })
+                },
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { paddingValues ->
         Column(
@@ -96,7 +124,7 @@ fun TradeScreen(
 
             when (tabIndex) {
                 0 -> TradesScreen(state, handleEvent)
-                1 -> OrdersScreen(state)
+                1 -> OrdersScreen(state, handleEvent)
                 2 -> TransfersScreen(state, handleEvent)
             }
         }

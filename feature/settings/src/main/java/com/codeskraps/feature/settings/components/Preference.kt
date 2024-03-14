@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -49,6 +50,8 @@ fun Preference(
             Text(
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 text = summaryText.toString()
             )
         }

@@ -61,6 +61,7 @@ dependencies {
     implementation(project(mapOf("path" to ":core:domain")))
     implementation(project(mapOf("path" to ":core:client")))
     implementation(project(mapOf("path" to ":feature:account")))
+    implementation(project(mapOf("path" to ":feature:pnl")))
     implementation(project(mapOf("path" to ":feature:trades")))
     implementation(project(mapOf("path" to ":feature:settings")))
 

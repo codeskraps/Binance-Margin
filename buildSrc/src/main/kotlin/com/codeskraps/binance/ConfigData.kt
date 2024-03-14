@@ -12,6 +12,9 @@ object ConfigData {
 
     const val kotlinCompiler = "1.5.8"
 
+    const val versionCode = 1
+    const val versionName = "1.0"
+
     const val isMinifyRelease = true
     const val isMinifyDebug = false
 }

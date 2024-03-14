@@ -7,10 +7,10 @@ import com.codeskraps.core.domain.usecases.trade.GetTransfersUseCase
 import com.codeskraps.core.domain.usecases.trade.UpdatePriceUseCase
 import javax.inject.Inject
 
-class TradeUsesCases @Inject constructor(
+class TradeUseCases @Inject constructor(
     val getTradedSymbols: GetTradedSymbolsUseCase,
     val getTrades: GetTradesUseCase,
     val getOrders: GetOrdersUseCase,
     val getTransfers: GetTransfersUseCase,
-    val updatePriceUseCase: UpdatePriceUseCase
+    val updatePrice: UpdatePriceUseCase
 )

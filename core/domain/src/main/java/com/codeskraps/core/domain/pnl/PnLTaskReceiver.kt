@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
@@ -21,20 +22,23 @@ class PnLTaskReceiver : BroadcastReceiver() {
             WorkManager.getInstance(it).run {
 
                 val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
 
+                // Log.i(TAG, "onReceive1")
                 enqueue(
                     OneTimeWorkRequestBuilder<PnLWorker>()
                         .setConstraints(constraints)
                         .build()
                 )
+
+                //Log.i(TAG, "onReceive: ${operation.result} || ${operation.state}")
             }
         }
     }
 
     companion object {
-        //private val TAG = PnLTaskReceiver::class.java.simpleName
+        private val TAG = PnLTaskReceiver::class.java.simpleName
 
         fun setPnLAlarm(context: Context) {
             (context.getSystemService(Application.ALARM_SERVICE) as AlarmManager).run {
@@ -46,7 +50,7 @@ class PnLTaskReceiver : BroadcastReceiver() {
 
 
                 /*val testCalendar: Calendar = Calendar.getInstance().apply {
-                    add(Calendar.MINUTE, 1)
+                    add(Calendar.SECOND, 10)
                 }*/
 
                 //Log.i(TAG, "setPnLAlarm: ${testCalendar.timeInMillis} ${calendar.timeInMillis}")

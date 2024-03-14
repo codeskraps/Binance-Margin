@@ -5,7 +5,6 @@ import com.codeskraps.core.domain.mappers.toTransfer
 import com.codeskraps.core.domain.mappers.toTransferEntity
 import com.codeskraps.core.domain.model.Transfer
 import com.codeskraps.core.realm.dao.TransferDao
-import io.realm.kotlin.UpdatePolicy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flattenMerge

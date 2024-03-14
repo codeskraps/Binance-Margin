@@ -8,8 +8,10 @@ data class TradesState(
     val isLoading: Boolean,
     val trades: List<Trade>,
     val tradeSymbols: Set<String>,
-    val tradeSelection: String,
+    val tradeSelection: Int,
     val orders: List<Order>,
+    val ordersSymbols: Set<String>,
+    val ordersSelection: Int,
     val transfers: List<Transfer>
 ) {
     companion object {
@@ -17,8 +19,10 @@ data class TradesState(
             isLoading = false,
             trades = emptyList(),
             tradeSymbols = emptySet(),
-            tradeSelection = "All Trades",
+            tradeSelection = 0,
             orders = emptyList(),
+            ordersSymbols = emptySet(),
+            ordersSelection = 0,
             transfers = emptyList()
         )
     }

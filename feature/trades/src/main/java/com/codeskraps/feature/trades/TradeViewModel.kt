@@ -1,6 +1,5 @@
 package com.codeskraps.feature.trades
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.model.Trade
@@ -11,77 +10,96 @@ import com.codeskraps.feature.trades.mvi.TradeEvent
 import com.codeskraps.feature.trades.mvi.TradesState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TradeViewModel @Inject constructor(
-    private val usesCases: TradeUsesCases
+    private val useCases: TradeUseCases
 ) : StateReducerViewModel<TradesState, TradeEvent, TradeAction>(TradesState.initial) {
 
     private var allTrades = emptyList<Trade>()
+    private var allOrders = emptyList<Order>()
     private var tradesNetworkLoading: Boolean = true
     private var ordersNetworkLoading: Boolean = true
     private var transfersNetworkLoading: Boolean = true
 
+    private var tradesJob: Job? = null
+    private var ordersJob: Job? = null
+    private var transfersJob: Job? = null
+
     override fun reduceState(currentState: TradesState, event: TradeEvent): TradesState {
         return when (event) {
             is TradeEvent.Resume -> onResume(currentState)
+            is TradeEvent.Pause -> onPause(currentState)
             is TradeEvent.LoadedTrades -> onLoadedTrades(currentState, event.trades)
             is TradeEvent.LoadedOrders -> onLoadedOrders(currentState, event.orders)
             is TradeEvent.LoadedTransfers -> onLoadedTransfers(currentState, event.transfers)
-            is TradeEvent.TradesSelection -> onTradesSelection(currentState, event.symbol)
+            is TradeEvent.TradesSelection -> onTradesSelection(currentState, event.index)
+            is TradeEvent.OrderSelection -> onOrderSelection(currentState, event.index)
             is TradeEvent.StopLoading -> onStopLoading(currentState)
             is TradeEvent.PriceUpdate -> onPriceUpdate(currentState, event.transfer)
         }
     }
 
     private fun onResume(currentState: TradesState): TradesState {
-        val symbols = usesCases.getTradedSymbols()
-        viewModelScope.launch(Dispatchers.IO) {
-            usesCases.getTrades(symbols) {
+        val symbols = useCases.getTradedSymbols()
+        tradesJob = viewModelScope.launch(Dispatchers.IO) {
+            useCases.getTrades(symbols) {
                 tradesNetworkLoading = !it
                 checkLoading()
-            }.collect {
-                state.handleEvent(TradeEvent.LoadedTrades(it))
+            }.collect { trades ->
+                state.handleEvent(TradeEvent.LoadedTrades(trades))
             }
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            usesCases.getOrders(symbols) {
+        ordersJob = viewModelScope.launch(Dispatchers.IO) {
+            useCases.getOrders(symbols) {
                 ordersNetworkLoading = !it
                 checkLoading()
-            }.collect {
-                state.handleEvent(TradeEvent.LoadedOrders(it))
+            }.collect { orders ->
+                state.handleEvent(TradeEvent.LoadedOrders(orders))
             }
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            usesCases.getTransfers {
+        transfersJob = viewModelScope.launch(Dispatchers.IO) {
+            useCases.getTransfers {
                 transfersNetworkLoading = !it
                 checkLoading()
-            }.collect {
-                it.forEach {
-                    Log.e("Transfer", it.toString())
-                }
-                state.handleEvent(TradeEvent.LoadedTransfers(it))
+            }.collect { transfers ->
+                state.handleEvent(TradeEvent.LoadedTransfers(transfers))
             }
         }
         return currentState.copy(isLoading = true)
+    }
+
+    private fun onPause(currentState: TradesState): TradesState {
+        tradesJob?.cancel()
+        ordersJob?.cancel()
+        transfersJob?.cancel()
+        return currentState
     }
 
     private fun onLoadedTrades(currentState: TradesState, trades: List<Trade>): TradesState {
         val symbols = mutableSetOf("All Trades")
         symbols.addAll(trades.map { it.symbol }.sorted())
         allTrades = trades
+        val symbol = symbols.elementAt(currentState.tradeSelection)
         return currentState.copy(
-            trades = allTrades.takeIf { currentState.tradeSelection == "All Trades" }
-                ?: allTrades.filter { it.symbol == currentState.tradeSelection },
+            trades = allTrades.takeIf { currentState.tradeSelection == 0 }
+                ?: allTrades.filter { it.symbol == symbol },
             tradeSymbols = symbols.toSet(),
         )
     }
 
     private fun onLoadedOrders(currentState: TradesState, orders: List<Order>): TradesState {
+        val symbols = mutableSetOf("All Orders")
+        symbols.addAll(orders.map { it.symbol }.sorted())
+        allOrders = orders
+        val symbol = symbols.elementAt(currentState.ordersSelection)
         return currentState.copy(
-            orders = orders
+            orders = allOrders.takeIf { currentState.ordersSelection == 0 }
+                ?: allOrders.filter { it.symbol == symbol },
+            ordersSymbols = symbols.toSet(),
         )
     }
 
@@ -94,17 +112,27 @@ class TradeViewModel @Inject constructor(
         )
     }
 
-    private fun onTradesSelection(currentState: TradesState, symbol: String): TradesState {
+    private fun onTradesSelection(currentState: TradesState, index: Int): TradesState {
+        val symbol = currentState.tradeSymbols.elementAt(index)
         return currentState.copy(
-            trades = allTrades.takeIf { symbol == "All Trades" }
+            trades = allTrades.takeIf { index == 0 }
                 ?: allTrades.filter { it.symbol == symbol },
-            tradeSelection = symbol
+            tradeSelection = index
+        )
+    }
+
+    private fun onOrderSelection(currentState: TradesState, index: Int): TradesState {
+        val symbol = currentState.ordersSymbols.elementAt(index)
+        return currentState.copy(
+            orders = allOrders.takeIf { index == 0 }
+                ?: allOrders.filter { it.symbol == symbol },
+            ordersSelection = index
         )
     }
 
     private fun onPriceUpdate(currentState: TradesState, transfer: Transfer): TradesState {
         viewModelScope.launch(Dispatchers.IO) {
-            usesCases.updatePriceUseCase(transfer)
+            useCases.updatePrice(transfer)
         }
         return currentState.copy(
             transfers = currentState.transfers.map {

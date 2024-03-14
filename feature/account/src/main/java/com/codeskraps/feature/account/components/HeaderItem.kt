@@ -77,7 +77,11 @@ fun HeaderItem(
                 Text(text = "Col. level: ${state.account.collateralMarginLevel.format(2)}")
             }
         }
-        Text(text = "Assets: $${state.investedAssets.format(2)}")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text(text = "Entry: $${state.entryValueAssets.format(2)}")
+            Spacer(modifier = Modifier.weight(1f))
+            Text(text = "Assets: $${state.valueAssets.format(2)}")
+        }
         Enabled(status = state.account.borrowEnabled, message = "Borrow Enabled: ")
         Enabled(status = state.account.tradeEnabled, message = "Trade Enabled: ")
         Enabled(status = state.account.transferEnabled, message = "Transfer Enabled: ")

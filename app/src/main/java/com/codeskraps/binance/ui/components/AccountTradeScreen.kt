@@ -24,6 +24,8 @@ import com.codeskraps.binance.R
 import com.codeskraps.binance.navigation.Screen
 import com.codeskraps.feature.account.AccountViewModel
 import com.codeskraps.feature.account.components.AccountScreen
+import com.codeskraps.feature.pnl.PnLViewModel
+import com.codeskraps.feature.pnl.components.FinishTradesScreen
 import com.codeskraps.feature.trades.TradeViewModel
 import com.codeskraps.feature.trades.components.TradeScreen
 
@@ -35,6 +37,7 @@ fun AccountTradeScreen(
     val navController = rememberNavController()
 
     val accViewModel = hiltViewModel<AccountViewModel>()
+    val pnlViewModel = hiltViewModel<PnLViewModel>()
     val tradeViewModel = hiltViewModel<TradeViewModel>()
 
     Scaffold(
@@ -63,6 +66,22 @@ fun AccountTradeScreen(
                     selected = selectedTabIndex == 1,
                     onClick = {
                         selectedTabIndex = 1
+                        navController.navigate(Screen.PnL.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = false
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_pnl),
+                            contentDescription = null
+                        )
+                    })
+                NavigationBarItem(
+                    selected = selectedTabIndex == 2,
+                    onClick = {
+                        selectedTabIndex = 2
                         navController.navigate(Screen.Trade.route) {
                             popUpTo(navController.graph.id) {
                                 inclusive = false
@@ -100,6 +119,18 @@ fun AccountTradeScreen(
                         else -> {}
                     }
                 }
+            }
+            composable(
+                route = Screen.PnL.route
+            ){
+                val state by pnlViewModel.state.collectAsStateWithLifecycle()
+
+                FinishTradesScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    state = state,
+                    handleEvent = pnlViewModel.state::handleEvent)
             }
             composable(
                 route = Screen.Trade.route

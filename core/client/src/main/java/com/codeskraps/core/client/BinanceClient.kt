@@ -3,7 +3,10 @@ package com.codeskraps.core.client
 import android.util.Log
 import com.binance.connector.client.SpotClient
 import com.codeskraps.core.client.adapters.CandleAdapter
-import com.codeskraps.core.client.model.Candle
+import com.codeskraps.core.client.model.AssetInfoDto
+import com.codeskraps.core.client.model.CandleDto
+import com.codeskraps.core.client.model.InterestDto
+import com.codeskraps.core.client.model.InterestHistoryDto
 import com.codeskraps.core.client.model.Interval
 import com.codeskraps.core.client.model.MarginAccountDto
 import com.codeskraps.core.client.model.OrderDto
@@ -18,8 +21,10 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
-import kotlin.math.absoluteValue
 
 
 class BinanceClient @Inject constructor(
@@ -83,7 +88,7 @@ class BinanceClient @Inject constructor(
         }.getOrElse { emptyList() }
     }
 
-    fun kLines(symbol: String, interval: Interval, limit: Int): List<Candle> {
+    fun kLines(symbol: String, interval: Interval, limit: Int): List<CandleDto> {
         return runCatching {
             try {
                 val parameters: MutableMap<String, Any> = LinkedHashMap()
@@ -94,8 +99,8 @@ class BinanceClient @Inject constructor(
                 val result = market.klines(parameters)
                 Log.i(TAG, result)
 
-                val listType = Types.newParameterizedType(List::class.java, Candle::class.java)
-                val adapter = moshiCandles.adapter<List<Candle>>(listType)
+                val listType = Types.newParameterizedType(List::class.java, CandleDto::class.java)
+                val adapter = moshiCandles.adapter<List<CandleDto>>(listType)
 
 
                 val dataList = adapter.fromJson(result)
@@ -104,14 +109,14 @@ class BinanceClient @Inject constructor(
                 Log.e(TAG, e.toString())
             }
 
-            emptyList<Candle>()
+            emptyList<CandleDto>()
         }.getOrElse { emptyList() }
     }
 
     private fun transferHistory(): TransferHistoryDto {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
-            parameters["startTime"] = store.startDate
+            parameters["startTime"] = transferStartTime(store.startDate)
             val json = margin.transferHistory(parameters)
 
             val jsonAdapter: JsonAdapter<TransferHistoryDto> =
@@ -179,6 +184,7 @@ class BinanceClient @Inject constructor(
 
     suspend fun orders(symbols: List<String>): List<OrderDto> {
         return coroutineScope {
+            //val allSymbols = allSymbols()
             val allTrades = mutableListOf<OrderDto>()
             val deferredResults = symbols.map { symbol -> async { orders(symbol) } }
             val result = awaitAll(*deferredResults.toTypedArray())
@@ -207,6 +213,37 @@ class BinanceClient @Inject constructor(
         }.getOrElse { emptyList() }
     }
 
+    private fun allSymbols(): List<String> {
+        return runCatching {
+            val json = margin.allAssets()
+            val listMyData = Types.newParameterizedType(
+                MutableList::class.java,
+                AssetInfoDto::class.java
+            )
+            val jsonAdapter: JsonAdapter<List<AssetInfoDto>> = moshi.adapter(listMyData)
+            return@runCatching jsonAdapter.fromJson(json)
+                ?.map { "${it.assetName}$BASE_ASSET" }
+                ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
+    private fun interestHistory(): List<InterestDto> {
+        return runCatching {
+            val parameters: MutableMap<String, Any> = LinkedHashMap()
+            parameters["max"] = 20
+            parameters["current"] = 3
+            parameters["startTime"] = transferStartTime(store.startDate)
+            val json = margin.interestHistory(parameters)
+            val jsonAdapter: JsonAdapter<InterestHistoryDto> =
+                moshi.adapter(InterestHistoryDto::class.java)
+            val interestHistoryDto = jsonAdapter.fromJson(json)
+            interestHistoryDto?.let {
+                Log.i(TAG, "Interest History Rows: ${it.rows.size}, total: ${it.total}")
+            }
+            return@runCatching interestHistoryDto?.rows ?: emptyList()
+        }.getOrElse { emptyList() }
+    }
+
     private fun sanitizeSymbols(symbols: ArrayList<String>): ArrayList<String> {
         val newSymbols = ArrayList(symbols)
         newSymbols.removeAll(badSymbols())
@@ -228,5 +265,17 @@ class BinanceClient @Inject constructor(
         val totalQuantity = tradeQuantity + holdingQuantity
         val totalPrice = (tradeQuantity * tradePrice) + (holdingQuantity * holdingAveragePrice)
         return totalPrice / totalQuantity
+    }
+
+    private fun transferStartTime(timestamp: Long): Long {
+        val sixMonthsAgo = LocalDate.now()
+            .minusMonths(6)
+            .plusDays(1)
+
+        val date = Instant.ofEpochMilli(timestamp)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+
+        return timestamp.takeIf { date.isAfter(sixMonthsAgo) } ?: sixMonthsAgo.toEpochDay()
     }
 }

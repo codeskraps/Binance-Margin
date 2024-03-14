@@ -33,6 +33,7 @@ class PnLWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
+        //Log.e(TAG, "doWork")
         val result = runCatching {
             client.marginAccount()?.let { account ->
                 runBlocking {

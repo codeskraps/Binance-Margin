@@ -124,7 +124,7 @@ fun <T> LargeDropdownMenu(
                         }
 
                         if (index < items.lastIndex) {
-                            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Spacer(modifier = Modifier.padding(horizontal = 16.dp))
                         }
                     }
                 }
