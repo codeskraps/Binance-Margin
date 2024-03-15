@@ -17,7 +17,6 @@ data class OrderDto(
     val time: Long,
     val updateTime: Long,
     val isWorking: Boolean,
-    val accountId: Long,
     val isIsolated: Boolean,
     val selfTradePreventionMode: String
 )

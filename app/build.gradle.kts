@@ -63,6 +63,7 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:account")))
     implementation(project(mapOf("path" to ":feature:pnl")))
     implementation(project(mapOf("path" to ":feature:trades")))
+    implementation(project(mapOf("path" to ":feature:symbol")))
     implementation(project(mapOf("path" to ":feature:settings")))
 
     val platform = platform(libs.androidx.compose.bom)

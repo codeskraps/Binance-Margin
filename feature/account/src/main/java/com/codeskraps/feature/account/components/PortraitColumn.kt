@@ -37,7 +37,7 @@ fun PortraitColumn(
                     }
                     .reversed())
                 { asset ->
-                    CardAsset(state = state, asset = asset)
+                    CardAsset(state = state, asset = asset, handleEvent = handleEvent)
                 }
             }
         }

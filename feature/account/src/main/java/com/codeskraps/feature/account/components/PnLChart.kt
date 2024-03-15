@@ -111,19 +111,17 @@ fun PnLChart(
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         PnLTimeType.entries.forEach {
-            PnLTimeButton(currentPnLTimeType = pnlTime, pnlTime = it, handleEvent = handleEvent)
+            PnLTimeButton(selected = pnlTime == it, pnlTime = it, handleEvent = handleEvent)
         }
     }
 }
 
 @Composable
 fun PnLTimeButton(
-    currentPnLTimeType: PnLTimeType,
     pnlTime: PnLTimeType,
+    selected: Boolean,
     handleEvent: (AccountEvent) -> Unit
 ) {
-    val selected = currentPnLTimeType == pnlTime
-
     val color = if (isSystemInDarkTheme()) {
         Color.Black.takeIf { selected } ?: Color.DarkGray
     } else {

@@ -7,6 +7,6 @@ import javax.inject.Inject
 class GetTickersUseCase @Inject constructor(
     private val client: BinanceClient
 ) {
-    operator fun invoke(symbols: ArrayList<String>) =
+    suspend operator fun invoke(symbols: List<String>) =
         client.tickerSymbol(symbols).map { it.toTicker() }
 }

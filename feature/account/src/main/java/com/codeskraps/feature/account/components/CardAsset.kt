@@ -2,6 +2,7 @@ package com.codeskraps.feature.account.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,13 +22,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.codeskraps.core.domain.R
+import com.codeskraps.core.domain.model.Asset
 import com.codeskraps.core.domain.util.Constants
 import com.codeskraps.core.domain.util.StateUtil
+import com.codeskraps.feature.account.mvi.AccountEvent
 import com.codeskraps.feature.account.mvi.AccountState
 
 @Composable
-fun CardAsset(state: AccountState, asset: com.codeskraps.core.domain.model.Asset) {
-    Card(modifier = Modifier.padding(bottom = 10.dp)) {
+fun CardAsset(
+    state: AccountState,
+    asset: Asset,
+    handleEvent: (AccountEvent) -> Unit
+) {
+
+    val modifier = if (asset.asset != Constants.BASE_ASSET) {
+        Modifier
+            .padding(bottom = 10.dp)
+            .clickable {
+                handleEvent(
+                    AccountEvent.OpenSymbol(
+                        symbol = "${asset.asset}${Constants.BASE_ASSET}",
+                        entry = state.entry(asset)
+                    )
+                )
+            }
+    } else {
+        Modifier.padding(bottom = 10.dp)
+    }
+
+    Card(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

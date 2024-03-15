@@ -21,7 +21,6 @@ open class OrderEntity() : RealmObject {
     var icebergQty: String = ""
     var updateTime: Long = 0
     var isWorking: Boolean = false
-    var accountId: Long = 0
     var isIsolated: Boolean = false
     var selfTradePreventionMode: String = ""
 
@@ -42,7 +41,6 @@ open class OrderEntity() : RealmObject {
         time: Long,
         updateTime: Long,
         isWorking: Boolean,
-        accountId: Long,
         isIsolated: Boolean,
         selfTradePreventionMode: String
     ) : this() {
@@ -62,7 +60,6 @@ open class OrderEntity() : RealmObject {
         this.time = time
         this.updateTime = updateTime
         this.isWorking = isWorking
-        this.accountId = accountId
         this.isIsolated = isIsolated
         this.selfTradePreventionMode = selfTradePreventionMode
     }

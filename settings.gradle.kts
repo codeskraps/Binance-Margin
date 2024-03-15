@@ -1,3 +1,5 @@
+import java.net.URI
+
 pluginManagement {
     repositories {
         google()
@@ -10,6 +12,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
@@ -22,3 +25,4 @@ include(":feature:account")
 include(":feature:trades")
 include(":feature:settings")
 include(":feature:pnl")
+include(":feature:symbol")

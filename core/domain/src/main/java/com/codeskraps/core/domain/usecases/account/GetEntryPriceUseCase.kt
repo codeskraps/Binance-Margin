@@ -8,13 +8,9 @@ import com.codeskraps.core.domain.model.FinishTrade
 import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.domain.model.TradeType
 import com.codeskraps.core.domain.model.Transfer
-import com.codeskraps.core.domain.usecases.trade.GetTradesUseCase
-import com.codeskraps.core.domain.usecases.trade.GetTransfersUseCase
-import com.codeskraps.core.realm.model.FinishedTradeEntity
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 
@@ -55,8 +51,8 @@ class GetEntryPriceUseCase @Inject constructor(
     suspend operator fun invoke(symbol: String): Double {
         return coroutineScope {
             val deferredResults = listOf(
-                async { tradesUseCase(listOf(symbol)) {}.first() },
-                async { transfersUseCase {}.first() }
+                async { tradesUseCase(symbol) },
+                async { transfersUseCase(symbol) }
             )
 
             val results = awaitAll(*deferredResults.toTypedArray())

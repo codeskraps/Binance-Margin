@@ -1,4 +1,4 @@
-package com.codeskraps.binance.ui.theme
+package com.codeskraps.core.domain.theme
 
 import androidx.compose.ui.graphics.Color
 

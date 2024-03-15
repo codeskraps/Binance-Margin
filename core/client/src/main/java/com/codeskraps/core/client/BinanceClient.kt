@@ -7,13 +7,14 @@ import com.codeskraps.core.client.model.AssetInfoDto
 import com.codeskraps.core.client.model.CandleDto
 import com.codeskraps.core.client.model.InterestDto
 import com.codeskraps.core.client.model.InterestHistoryDto
-import com.codeskraps.core.client.model.Interval
 import com.codeskraps.core.client.model.MarginAccountDto
 import com.codeskraps.core.client.model.OrderDto
 import com.codeskraps.core.client.model.TickerDto
 import com.codeskraps.core.client.model.TradeDto
 import com.codeskraps.core.client.model.TransferDto
 import com.codeskraps.core.client.model.TransferHistoryDto
+import com.neutrine.krate.rateLimiter
+import com.neutrine.krate.storage.memory.memoryStateStorageWithEviction
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -21,10 +22,13 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.hours
 
 
 class BinanceClient @Inject constructor(
@@ -34,12 +38,23 @@ class BinanceClient @Inject constructor(
     companion object {
         const val BASE_ASSET = "USDT"
         private val TAG = BinanceClient::class.java.simpleName
+        private const val STEP = 5
+        private const val SECOND_IN_MILLIS: Long = 1000
+        private const val MINUTE_IN_MILLIS: Long = SECOND_IN_MILLIS * 60
     }
 
     private val margin by lazy { client.createMargin() }
     private val market by lazy { client.createMarket() }
     private val moshi by lazy { Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build() }
     private val moshiCandles by lazy { Moshi.Builder().add(CandleAdapter()).build() }
+
+    private val rateLimiter = rateLimiter(maxRate = 2) {
+        maxRateTimeUnit = ChronoUnit.SECONDS
+        stateStorage = memoryStateStorageWithEviction {
+            ttlAfterLastAccess = 2.hours
+        }
+    }
+    private var limitReached = false
 
     fun tradedSymbols(): List<String> = store.tradedAssets.toList().map { "$it${BASE_ASSET}" }
 
@@ -73,7 +88,7 @@ class BinanceClient @Inject constructor(
         }.getOrNull()
     }
 
-    fun tickerSymbol(symbols: ArrayList<String>): List<TickerDto> {
+    fun tickerSymbol(symbols: List<String>): List<TickerDto> {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbols"] = sanitizeSymbols(symbols)
@@ -85,55 +100,71 @@ class BinanceClient @Inject constructor(
             )
             val jsonAdapter: JsonAdapter<List<TickerDto>> = moshi.adapter(listMyData)
             return@runCatching jsonAdapter.fromJson(json) ?: emptyList()
-        }.getOrElse { emptyList() }
+        }.getOrElse {
+            Log.e(TAG, "Ticker Symbol: $it")
+            emptyList()
+        }
     }
 
-    fun kLines(symbol: String, interval: Interval, limit: Int): List<CandleDto> {
+    fun kLines(symbol: String, interval: String, limit: Int): List<CandleDto> {
         return runCatching {
-            try {
-                val parameters: MutableMap<String, Any> = LinkedHashMap()
-                parameters["symbol"] = symbol
-                parameters["interval"] = interval.value
-                parameters["limit"] = limit
+            val parameters: MutableMap<String, Any> = LinkedHashMap()
+            parameters["symbol"] = symbol
+            parameters["interval"] = interval
+            parameters["limit"] = limit
 
-                val result = market.klines(parameters)
-                Log.i(TAG, result)
+            val result = market.klines(parameters)
+            Log.i(TAG, result)
 
-                val listType = Types.newParameterizedType(List::class.java, CandleDto::class.java)
-                val adapter = moshiCandles.adapter<List<CandleDto>>(listType)
+            val listType = Types.newParameterizedType(List::class.java, CandleDto::class.java)
+            val adapter = moshiCandles.adapter<List<CandleDto>>(listType)
 
 
-                val dataList = adapter.fromJson(result)
-                Log.e(TAG, dataList.toString())
-            } catch (e: Exception) {
-                Log.e(TAG, e.toString())
-            }
+            val dataList = adapter.fromJson(result)
+            Log.e(TAG, dataList.toString())
+            dataList ?: emptyList()
 
-            emptyList<CandleDto>()
-        }.getOrElse { emptyList() }
+        }.getOrElse {
+            Log.e(TAG, "Klines: $it")
+            emptyList()
+        }
     }
 
     private fun transferHistory(): TransferHistoryDto {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["startTime"] = transferStartTime(store.startDate)
+
             val json = margin.transferHistory(parameters)
 
             val jsonAdapter: JsonAdapter<TransferHistoryDto> =
                 moshi.adapter(TransferHistoryDto::class.java)
             return@runCatching jsonAdapter.fromJson(json) ?: TransferHistoryDto()
-        }.getOrElse { TransferHistoryDto() }
+        }.getOrElse {
+            Log.e(TAG, "Transfer History: $it")
+            TransferHistoryDto()
+        }
     }
 
     fun transfers(): List<TransferDto> = transferHistory().rows
 
-    suspend fun trades(symbols: List<String>): List<TradeDto> {
+    suspend fun trades(): List<TradeDto> {
+        val allSymbols = allSymbols()
+        return trades(allSymbols)
+    }
+
+    private suspend fun trades(symbols: List<String>): List<TradeDto> {
         return coroutineScope {
             val allTrades = mutableListOf<TradeDto>()
-            val deferredResults = symbols.map { symbol -> async { trades(symbol) } }
 
-            val results = awaitAll(*deferredResults.toTypedArray())
-            results.forEach { allTrades.addAll(it) }
+            for (i in symbols.indices step STEP) {
+                val subSymbol = symbols.subList(i, (i + STEP).coerceAtMost(symbols.size))
+                val deferredResults = subSymbol.map { symbol -> async { trades(symbol) } }
+                val result = awaitAll(*deferredResults.toTypedArray())
+                result.forEach {
+                    allTrades.addAll(it)
+                }
+            }
 
             return@coroutineScope allTrades.sortedBy { it.time }.reversed()
         }
@@ -179,38 +210,62 @@ class BinanceClient @Inject constructor(
                 return@runCatching mergedTrades.toList()
             }
             return@runCatching emptyList<TradeDto>()
-        }.getOrElse { emptyList() }
-    }
-
-    suspend fun orders(symbols: List<String>): List<OrderDto> {
-        return coroutineScope {
-            //val allSymbols = allSymbols()
-            val allTrades = mutableListOf<OrderDto>()
-            val deferredResults = symbols.map { symbol -> async { orders(symbol) } }
-            val result = awaitAll(*deferredResults.toTypedArray())
-            result.forEach { allTrades.addAll(it) }
-            return@coroutineScope allTrades.sortedBy { it.time }.reversed()
+        }.getOrElse {
+            Log.e(TAG, "Trades: $it")
+            emptyList()
         }
     }
 
-    private fun orders(symbol: String): List<OrderDto> {
+    suspend fun orders(): List<OrderDto> {
+        return coroutineScope {
+            val allSymbols = allSymbols()
+            val allOrders = mutableListOf<OrderDto>()
+
+            for (i in allSymbols.indices step STEP) {
+                val subSymbol = allSymbols.subList(i, (i + STEP).coerceAtMost(allSymbols.size))
+                val deferredResults = subSymbol.map { symbol -> async { orders(symbol) } }
+                val result = awaitAll(*deferredResults.toTypedArray())
+                result.forEach {
+                    allOrders.addAll(it)
+                }
+            }
+
+            return@coroutineScope allOrders.sortedBy { it.time }.reversed()
+        }
+    }
+
+    suspend fun orders(symbol: String): List<OrderDto> {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbol"] = symbol
 
+            rateLimiter.awaitUntilTake()
+            while (limitReached) {
+                delay(SECOND_IN_MILLIS)
+            }
             val json = margin.getAllOrders(parameters)
+
             val listMyData = Types.newParameterizedType(
                 MutableList::class.java,
                 OrderDto::class.java
             )
             val jsonAdapter: JsonAdapter<List<OrderDto>> = moshi.adapter(listMyData)
+
             return@runCatching jsonAdapter.fromJson(json)
                 ?.filter { it.time >= store.startDate }
                 ?.filter { it.status != "FILLED" }
                 ?.filter { it.status != "CANCELED" }
                 ?.sortedBy { it.time }?.reversed()
                 ?: emptyList()
-        }.getOrElse { emptyList() }
+        }.getOrElse {
+            Log.e(TAG, "Orders($symbol): $it")
+            if (it.message?.contains("-1003") == true) {
+                limitReached = true
+                delay(MINUTE_IN_MILLIS)
+                limitReached = false
+            }
+            emptyList()
+        }
     }
 
     private fun allSymbols(): List<String> {
@@ -224,7 +279,10 @@ class BinanceClient @Inject constructor(
             return@runCatching jsonAdapter.fromJson(json)
                 ?.map { "${it.assetName}$BASE_ASSET" }
                 ?: emptyList()
-        }.getOrElse { emptyList() }
+        }.getOrElse {
+            Log.e(TAG, "All Symbols: $it")
+            emptyList()
+        }
     }
 
     private fun interestHistory(): List<InterestDto> {
@@ -241,10 +299,13 @@ class BinanceClient @Inject constructor(
                 Log.i(TAG, "Interest History Rows: ${it.rows.size}, total: ${it.total}")
             }
             return@runCatching interestHistoryDto?.rows ?: emptyList()
-        }.getOrElse { emptyList() }
+        }.getOrElse {
+            Log.e(TAG, "Interest History: $it")
+            emptyList()
+        }
     }
 
-    private fun sanitizeSymbols(symbols: ArrayList<String>): ArrayList<String> {
+    private fun sanitizeSymbols(symbols: List<String>): ArrayList<String> {
         val newSymbols = ArrayList(symbols)
         newSymbols.removeAll(badSymbols())
         newSymbols.remove("BTC$BASE_ASSET")

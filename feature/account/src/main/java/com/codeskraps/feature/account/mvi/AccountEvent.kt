@@ -22,4 +22,5 @@ sealed interface AccountEvent {
     data class PnLLoaded(val pnl: List<Float>) : AccountEvent
     data class PnLTimeChanged(val time: PnLTimeType) : AccountEvent
     data class AssetsSortLoaded(val assetsSort: AssertSort) : AccountEvent
+    data class OpenSymbol(val symbol: String, val entry: Double) : AccountEvent
 }

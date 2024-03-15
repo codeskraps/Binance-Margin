@@ -36,7 +36,7 @@ object RealmModule {
                 FinishedTradeEntity::class
             )
         )
-            .schemaVersion(10)
+            .schemaVersion(11)
             .migration(BinanceRealmMigration())
             .build()
 

@@ -48,7 +48,7 @@ fun LandscapeColumn(
                     }
                     .reversed()) { asset ->
                     Box(modifier = Modifier.padding(end = 10.dp)) {
-                        CardAsset(state = state, asset = asset)
+                        CardAsset(state = state, asset = asset, handleEvent = handleEvent)
                     }
                 }
             }

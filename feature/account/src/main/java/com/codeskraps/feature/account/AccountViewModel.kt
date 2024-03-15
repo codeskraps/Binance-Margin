@@ -49,6 +49,7 @@ class AccountViewModel @Inject constructor(
             is AccountEvent.PnLLoaded -> onPnLLoaded(currentState, event.pnl)
             is AccountEvent.PnLTimeChanged -> onTimeChanged(currentState, event.time)
             is AccountEvent.AssetsSortLoaded -> onAssetsSortLoaded(currentState, event.assetsSort)
+            is AccountEvent.OpenSymbol -> onOpenSymbol(currentState, event.symbol, event.entry)
         }
     }
 
@@ -176,5 +177,16 @@ class AccountViewModel @Inject constructor(
             useCases.putAssetsSort(assetsSort)
         }
         return currentState.copy(assetsSort = assetsSort)
+    }
+
+    private fun onOpenSymbol(
+        currentState: AccountState,
+        symbol: String,
+        entry: Double
+    ): AccountState {
+        viewModelScope.launch(Dispatchers.IO) {
+            actionChannel.send(AccountAction.OpenSymbol(symbol, entry))
+        }
+        return currentState
     }
 }

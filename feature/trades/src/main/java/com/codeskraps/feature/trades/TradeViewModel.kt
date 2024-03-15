@@ -22,7 +22,6 @@ class TradeViewModel @Inject constructor(
     private var allTrades = emptyList<Trade>()
     private var allOrders = emptyList<Order>()
     private var tradesNetworkLoading: Boolean = true
-    private var ordersNetworkLoading: Boolean = true
     private var transfersNetworkLoading: Boolean = true
 
     private var tradesJob: Job? = null
@@ -44,9 +43,8 @@ class TradeViewModel @Inject constructor(
     }
 
     private fun onResume(currentState: TradesState): TradesState {
-        val symbols = useCases.getTradedSymbols()
         tradesJob = viewModelScope.launch(Dispatchers.IO) {
-            useCases.getTrades(symbols) {
+            useCases.getTrades {
                 tradesNetworkLoading = !it
                 checkLoading()
             }.collect { trades ->
@@ -54,10 +52,7 @@ class TradeViewModel @Inject constructor(
             }
         }
         ordersJob = viewModelScope.launch(Dispatchers.IO) {
-            useCases.getOrders(symbols) {
-                ordersNetworkLoading = !it
-                checkLoading()
-            }.collect { orders ->
+            useCases.getOrders().collect { orders ->
                 state.handleEvent(TradeEvent.LoadedOrders(orders))
             }
         }
@@ -150,7 +145,7 @@ class TradeViewModel @Inject constructor(
     }
 
     private fun checkLoading() {
-        if (!tradesNetworkLoading && !ordersNetworkLoading && !transfersNetworkLoading) {
+        if (!tradesNetworkLoading && !transfersNetworkLoading) {
             state.handleEvent(TradeEvent.StopLoading)
         }
     }

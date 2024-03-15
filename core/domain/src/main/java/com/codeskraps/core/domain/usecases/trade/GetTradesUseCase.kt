@@ -20,15 +20,14 @@ class GetTradesUseCase @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend operator fun invoke(
-        symbols: List<String>,
         network: (Boolean) -> Unit
     ): Flow<List<Trade>> {
-        return flowOf(clientFlow(symbols, network), daoFlow()).flattenMerge()
+        return flowOf(clientFlow(network), daoFlow()).flattenMerge()
     }
 
-    private fun clientFlow(symbols: List<String>, network: (Boolean) -> Unit): Flow<List<Trade>> =
+    private fun clientFlow(network: (Boolean) -> Unit): Flow<List<Trade>> =
         flow {
-            client.trades(symbols).let { trades ->
+            client.trades().let { trades ->
                 tradeDao.updateAll(trades.map { it.toTradeEntity() })
                 network(true)
             }

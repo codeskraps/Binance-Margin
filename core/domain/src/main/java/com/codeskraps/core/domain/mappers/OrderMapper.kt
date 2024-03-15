@@ -22,7 +22,6 @@ fun OrderDto.toOrderEntity(): OrderEntity {
         icebergQty = icebergQty,
         updateTime = updateTime,
         isWorking = isWorking,
-        accountId = accountId,
         isIsolated = isIsolated,
         selfTradePreventionMode = selfTradePreventionMode
     )
@@ -46,7 +45,6 @@ fun OrderEntity.toOrder(): Order {
         icebergQty = icebergQty,
         updateTime = updateTime,
         isWorking = isWorking,
-        accountId = accountId,
         isIsolated = isIsolated,
         selfTradePreventionMode = selfTradePreventionMode
     )

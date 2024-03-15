@@ -9,15 +9,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.codeskraps.binance.navigation.Screen
+import ch.vilea.swisscom.feature.symbol.SymbolViewModel
+import ch.vilea.swisscom.feature.symbol.components.SymbolScreen
+import ch.vilea.swisscom.feature.symbol.mvi.SymbolEvent
+import com.codeskraps.core.domain.navigation.Screen
 import com.codeskraps.binance.ui.components.AccountTradeScreen
 import com.codeskraps.binance.ui.components.SetUpScreen
 import com.codeskraps.binance.ui.mvi.MainActivityEvent
-import com.codeskraps.binance.ui.theme.BinanceTheme
+import com.codeskraps.binance.ui.mvi.MainActivityState
+import com.codeskraps.core.domain.theme.BinanceTheme
 import com.codeskraps.feature.settings.SettingsViewModel
 import com.codeskraps.feature.settings.components.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +41,11 @@ class MainActivity : ComponentActivity() {
                     val mainActivityViewModel = hiltViewModel<MainActivityViewModel>()
                     val mainActivityState by mainActivityViewModel.state.collectAsStateWithLifecycle()
 
+                    LifecycleResumeEffect(Unit) {
+                        mainActivityViewModel.state.handleEvent(MainActivityEvent.Resume)
+                        onPauseOrDispose {}
+                    }
+
                     NavHost(
                         navController = navController,
                         startDestination = Screen.AccountTrade.route
@@ -43,7 +53,7 @@ class MainActivity : ComponentActivity() {
                         if (mainActivityState.hasApiKey) {
                             composable(Screen.AccountTrade.route) {
                                 AccountTradeScreen {
-                                    navController.navigate(it.route)
+                                    navController.navigate(it)
                                 }
                             }
                         } else {
@@ -52,6 +62,18 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(it.route)
                                 }
                             }
+                        }
+
+                        composable(
+                            route = Screen.Symbol.route
+                        ) {
+                            val symbolViewModel = hiltViewModel<SymbolViewModel>()
+                            val state by symbolViewModel.state.collectAsStateWithLifecycle()
+
+                            SymbolScreen(
+                                state = state,
+                                handleEvent = symbolViewModel.state::handleEvent
+                            )
                         }
 
                         composable(

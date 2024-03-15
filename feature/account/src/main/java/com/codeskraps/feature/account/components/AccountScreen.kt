@@ -4,19 +4,12 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,22 +23,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.codeskraps.core.domain.R
-import com.codeskraps.core.domain.model.AssertSort
-import com.codeskraps.core.domain.util.Constants
+import com.codeskraps.core.domain.components.ObserveAsEvents
+import com.codeskraps.core.domain.navigation.Screen
+import com.codeskraps.feature.account.mvi.AccountAction
 import com.codeskraps.feature.account.mvi.AccountEvent
 import com.codeskraps.feature.account.mvi.AccountState
+import kotlinx.coroutines.flow.Flow
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,12 +44,21 @@ fun AccountScreen(
     modifier: Modifier,
     state: AccountState,
     handleEvent: (AccountEvent) -> Unit,
+    action: Flow<AccountAction>,
     navRoute: (String) -> Unit
 ) {
     LifecycleResumeEffect(Unit) {
         handleEvent(AccountEvent.Resume)
         onPauseOrDispose {
             handleEvent(AccountEvent.Pause)
+        }
+    }
+
+    ObserveAsEvents(flow = action) { onAction ->
+        when (onAction) {
+            is AccountAction.OpenSymbol -> {
+                navRoute(Screen.Symbol.createRoute(onAction.symbol, onAction.entry))
+            }
         }
     }
 
@@ -100,7 +99,7 @@ fun AccountScreen(
                             .padding(10.dp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    IconButton(onClick = { navRoute("setting") }) {
+                    IconButton(onClick = { navRoute(Screen.Setting.route) }) {
                         Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null)
                     }
                 },

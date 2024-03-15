@@ -42,6 +42,6 @@ class CandleAdapter {
 
     @ToJson
     fun toJson(writer: JsonWriter, value: List<CandleDto>) {
-        writer.value("")
+        writer.value(value.toString())
     }
 }

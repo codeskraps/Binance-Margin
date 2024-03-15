@@ -18,6 +18,7 @@ class BinanceStore @Inject constructor(
         private const val prefSecretKey = "prefSecretKey"
         private const val prefStartDate = "prefStartDate"
         private const val prefPnlTimeType = "prefPnlTimeType"
+        private const val prefChartTimeType = "prefChartTimeType"
         private const val prefAssetsSort = "prefAssetsSort"
     }
 
@@ -55,6 +56,10 @@ class BinanceStore @Inject constructor(
     var pnlTimeType: String
         get() = prefs.getString(prefPnlTimeType, "1d") ?: "1d"
         set(value) = prefs.edit().putString(prefPnlTimeType, value).apply()
+
+    var chartTimeType: String
+        get() = prefs.getString(prefChartTimeType, "1d") ?: "1d"
+        set(value) = prefs.edit().putString(prefChartTimeType, value).apply()
 
     var assetsSort: String
         get() = prefs.getString(prefAssetsSort, "Value") ?: "Value"

@@ -21,7 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codeskraps.binance.R
-import com.codeskraps.binance.navigation.Screen
+import com.codeskraps.core.domain.navigation.Screen
 import com.codeskraps.feature.account.AccountViewModel
 import com.codeskraps.feature.account.components.AccountScreen
 import com.codeskraps.feature.pnl.PnLViewModel
@@ -31,7 +31,7 @@ import com.codeskraps.feature.trades.components.TradeScreen
 
 @Composable
 fun AccountTradeScreen(
-    navRoute: (Screen) -> Unit
+    navRoute: (String) -> Unit
 ) {
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val navController = rememberNavController()
@@ -112,17 +112,23 @@ fun AccountTradeScreen(
                         .fillMaxSize()
                         .padding(paddingValues),
                     state = state,
+                    action = accViewModel.action,
                     handleEvent = accViewModel.state::handleEvent
                 ) { route ->
-                    when (route) {
-                        Screen.Setting.route -> navRoute(Screen.Setting)
+                    val args = route.split("/")
+                    when (args[0]) {
+                        Screen.Setting.route -> navRoute(Screen.Setting.route)
+                        Screen.Symbol.route.split("/")[0] -> navRoute(
+                            Screen.Symbol.createRoute(args[1], args[2].toDouble())
+                        )
+
                         else -> {}
                     }
                 }
             }
             composable(
                 route = Screen.PnL.route
-            ){
+            ) {
                 val state by pnlViewModel.state.collectAsStateWithLifecycle()
 
                 FinishTradesScreen(
@@ -130,7 +136,8 @@ fun AccountTradeScreen(
                         .fillMaxSize()
                         .padding(paddingValues),
                     state = state,
-                    handleEvent = pnlViewModel.state::handleEvent)
+                    handleEvent = pnlViewModel.state::handleEvent
+                )
             }
             composable(
                 route = Screen.Trade.route

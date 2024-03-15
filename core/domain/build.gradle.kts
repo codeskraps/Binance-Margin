@@ -40,16 +40,29 @@ android {
     kotlinOptions {
         jvmTarget = ConfigData.javaTarget
     }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = ConfigData.kotlinCompiler
+    }
 }
 
 dependencies {
     implementation(project(mapOf("path" to ":core:client")))
     implementation(project(mapOf("path" to ":core:realm")))
 
+    val platform = platform(libs.androidx.compose.bom)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.appcompat)
-    implementation(libs.material)
+    implementation(libs.androidx.navigation.compose)
+    implementation(platform)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.work)

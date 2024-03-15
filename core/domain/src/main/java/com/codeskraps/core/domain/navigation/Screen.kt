@@ -1,4 +1,4 @@
-package com.codeskraps.binance.navigation
+package com.codeskraps.core.domain.navigation
 
 sealed class Screen(val route: String) {
     data object SetUp : Screen("set_up")
@@ -6,5 +6,9 @@ sealed class Screen(val route: String) {
     data object Account : Screen("account")
     data object Trade : Screen("trade")
     data object PnL : Screen("pnl")
+    data object Symbol : Screen("symbol/{symbol}/{entry}") {
+        fun createRoute(symbol: String, entry: Double) = "symbol/$symbol/$entry"
+    }
+
     data object Setting : Screen("setting")
 }
