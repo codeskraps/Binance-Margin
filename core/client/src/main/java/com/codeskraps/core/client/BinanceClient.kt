@@ -8,6 +8,7 @@ import com.codeskraps.core.client.model.CandleDto
 import com.codeskraps.core.client.model.InterestDto
 import com.codeskraps.core.client.model.InterestHistoryDto
 import com.codeskraps.core.client.model.MarginAccountDto
+import com.codeskraps.core.client.model.MaxBorrowDto
 import com.codeskraps.core.client.model.OrderDto
 import com.codeskraps.core.client.model.TickerDto
 import com.codeskraps.core.client.model.TradeDto
@@ -22,7 +23,6 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -40,7 +40,6 @@ class BinanceClient @Inject constructor(
         private val TAG = BinanceClient::class.java.simpleName
         private const val STEP = 5
         private const val SECOND_IN_MILLIS: Long = 1000
-        private const val MINUTE_IN_MILLIS: Long = SECOND_IN_MILLIS * 60
     }
 
     private val margin by lazy { client.createMargin() }
@@ -48,13 +47,12 @@ class BinanceClient @Inject constructor(
     private val moshi by lazy { Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build() }
     private val moshiCandles by lazy { Moshi.Builder().add(CandleAdapter()).build() }
 
-    private val rateLimiter = rateLimiter(maxRate = 2) {
+    private val rateLimiter = rateLimiter(maxRate = 5) {
         maxRateTimeUnit = ChronoUnit.SECONDS
         stateStorage = memoryStateStorageWithEviction {
             ttlAfterLastAccess = 2.hours
         }
     }
-    private var limitReached = false
 
     fun tradedSymbols(): List<String> = store.tradedAssets.toList().map { "$it${BASE_ASSET}" }
 
@@ -153,7 +151,7 @@ class BinanceClient @Inject constructor(
         return trades(allSymbols)
     }
 
-    private suspend fun trades(symbols: List<String>): List<TradeDto> {
+    suspend fun trades(symbols: List<String>): List<TradeDto> {
         return coroutineScope {
             val allTrades = mutableListOf<TradeDto>()
 
@@ -225,8 +223,11 @@ class BinanceClient @Inject constructor(
                 val subSymbol = allSymbols.subList(i, (i + STEP).coerceAtMost(allSymbols.size))
                 val deferredResults = subSymbol.map { symbol -> async { orders(symbol) } }
                 val result = awaitAll(*deferredResults.toTypedArray())
-                result.forEach {
-                    allOrders.addAll(it)
+                result.forEach { response ->
+                    when (response) {
+                        is Response.Success -> allOrders.addAll(response.data)
+                        is Response.Failure -> Log.e(TAG, "Orders: ${response.error}")
+                    }
                 }
             }
 
@@ -234,15 +235,12 @@ class BinanceClient @Inject constructor(
         }
     }
 
-    suspend fun orders(symbol: String): List<OrderDto> {
+    suspend fun orders(symbol: String): Response<List<OrderDto>, OrderError> {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbol"] = symbol
 
             rateLimiter.awaitUntilTake()
-            while (limitReached) {
-                delay(SECOND_IN_MILLIS)
-            }
             val json = margin.getAllOrders(parameters)
 
             val listMyData = Types.newParameterizedType(
@@ -251,24 +249,26 @@ class BinanceClient @Inject constructor(
             )
             val jsonAdapter: JsonAdapter<List<OrderDto>> = moshi.adapter(listMyData)
 
-            return@runCatching jsonAdapter.fromJson(json)
+            return@runCatching Response.Success(jsonAdapter.fromJson(json)
                 ?.filter { it.time >= store.startDate }
                 ?.filter { it.status != "FILLED" }
                 ?.filter { it.status != "CANCELED" }
                 ?.sortedBy { it.time }?.reversed()
                 ?: emptyList()
+            )
         }.getOrElse {
             Log.e(TAG, "Orders($symbol): $it")
             if (it.message?.contains("-1003") == true) {
-                limitReached = true
-                delay(MINUTE_IN_MILLIS)
-                limitReached = false
+                Response.Failure(OrderError.LIMIT_REACHED)
+            } else if (it.message?.contains("-1121") == true) {
+                Response.Failure(OrderError.BAD_SYMBOL)
+            } else {
+                Response.Failure(OrderError.UNKNOWN)
             }
-            emptyList()
         }
     }
 
-    private fun allSymbols(): List<String> {
+    fun allSymbols(): List<String> {
         return runCatching {
             val json = margin.allAssets()
             val listMyData = Types.newParameterizedType(
@@ -305,6 +305,22 @@ class BinanceClient @Inject constructor(
         }
     }
 
+    fun maxBorrow():Double {
+        return runCatching {
+            val parameters: MutableMap<String, Any> = LinkedHashMap()
+            parameters["asset"] = BASE_ASSET
+
+            val json = margin.maxBorrow(parameters)
+            val jsonAdapter: JsonAdapter<MaxBorrowDto> =
+                moshi.adapter(MaxBorrowDto::class.java)
+            val maxBorrowDto = jsonAdapter.fromJson(json) ?: MaxBorrowDto()
+            maxBorrowDto.amount.toDouble()
+        } .getOrElse {
+            Log.e(TAG, "Max Borrow: $it")
+            MaxBorrowDto().amount.toDouble()
+        }
+    }
+
     private fun sanitizeSymbols(symbols: List<String>): ArrayList<String> {
         val newSymbols = ArrayList(symbols)
         newSymbols.removeAll(badSymbols())
@@ -338,5 +354,11 @@ class BinanceClient @Inject constructor(
             .toLocalDate()
 
         return timestamp.takeIf { date.isAfter(sixMonthsAgo) } ?: sixMonthsAgo.toEpochDay()
+    }
+
+    enum class OrderError : Error {
+        LIMIT_REACHED,
+        BAD_SYMBOL,
+        UNKNOWN
     }
 }

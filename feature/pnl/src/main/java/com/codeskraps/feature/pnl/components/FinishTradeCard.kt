@@ -63,7 +63,7 @@ fun FinishTradeCard(finishTrade: FinishTrade) {
             )
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
-                Text("PnL: $${finishTrade.pnl.format(2)}")
+                Text("PnL: $${StateUtil.formatCurrency(finishTrade.pnl)}")
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "${finishTrade.pnlPercent.format(2)}%",

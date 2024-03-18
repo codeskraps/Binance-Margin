@@ -20,6 +20,7 @@ class BinanceStore @Inject constructor(
         private const val prefPnlTimeType = "prefPnlTimeType"
         private const val prefChartTimeType = "prefChartTimeType"
         private const val prefAssetsSort = "prefAssetsSort"
+        private const val prefLastOrderChecked = "lastOrderChecked"
     }
 
     private val prefs by lazy {
@@ -64,4 +65,8 @@ class BinanceStore @Inject constructor(
     var assetsSort: String
         get() = prefs.getString(prefAssetsSort, "Value") ?: "Value"
         set(value) = prefs.edit().putString(prefAssetsSort, value).apply()
+
+    var lastOrderChecked: Long
+        get() = prefs.getLong(prefLastOrderChecked, 0)
+        set(value) = prefs.edit().putLong(prefLastOrderChecked, value).apply()
 }

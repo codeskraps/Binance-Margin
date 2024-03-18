@@ -4,6 +4,8 @@ import com.codeskraps.core.domain.usecases.account.GetAssetsSortUseCase
 import com.codeskraps.core.domain.usecases.account.GetEntryPriceUseCase
 import com.codeskraps.core.domain.usecases.account.GetInvestedUseCase
 import com.codeskraps.core.domain.usecases.account.GetMarginAccountUseCase
+import com.codeskraps.core.domain.usecases.account.GetMaxBorrowUseCase
+import com.codeskraps.core.domain.usecases.account.GetOrdersUseCase
 import com.codeskraps.core.domain.usecases.account.GetPnLUseCase
 import com.codeskraps.core.domain.usecases.account.GetPnlTimeUseCase
 import com.codeskraps.core.domain.usecases.account.GetTickersUseCase
@@ -20,5 +22,7 @@ class AccountUseCases @Inject constructor(
     val getAssetsSort: GetAssetsSortUseCase,
     val putAssetsSort: PutAssetsSortUseCase,
     val putPnlTime: PutPnlTimeUseCase,
-    val getPnlTimeUseCase: GetPnlTimeUseCase
+    val getPnlTime: GetPnlTimeUseCase,
+    val getOrders: GetOrdersUseCase,
+    val getMaxBorrow: GetMaxBorrowUseCase
 )

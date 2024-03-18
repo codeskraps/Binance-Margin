@@ -71,7 +71,7 @@ fun CardAsset(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "${asset.asset} $${state.value(asset).format(2)}",
+                    text = "${asset.asset} $${StateUtil.formatCurrency(state.value(asset))}",
                     fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -94,7 +94,7 @@ fun CardAsset(
             Spacer(modifier = Modifier.height(10.dp))
             if (state.investedAsset(asset) != .0) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Invested: $${state.investedAsset(asset).format(2)}")
+                    Text(text = "Invested: $${StateUtil.formatCurrency(state.investedAsset(asset))}")
                     Spacer(modifier = Modifier.weight(1f))
                     Text(text = "${state.valueAssetPercent(asset).format(2)}%")
                 }
@@ -107,9 +107,9 @@ fun CardAsset(
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 if (asset.asset == Constants.BASE_ASSET) {
-                    Text(text = "free: $${asset.free.format(2)}")
+                    Text(text = "free: $${StateUtil.formatCurrency(asset.free)}")
                     Spacer(modifier = Modifier.weight(1f))
-                    Text(text = "net: $${asset.netAsset.format(2)}")
+                    Text(text = "net: $${StateUtil.formatCurrency(asset.netAsset)}")
                 } else {
                     Text(text = "free: ${asset.free}")
                     Spacer(modifier = Modifier.weight(1f))
@@ -119,9 +119,9 @@ fun CardAsset(
             if (asset.borrowed != .0 || asset.interest != .0) {
                 if (asset.asset == Constants.BASE_ASSET) {
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "debt: $${asset.borrowed.format(2)}")
+                        Text(text = "debt: $${StateUtil.formatCurrency(asset.borrowed)}")
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(text = "interest: $${asset.interest.format(2)}")
+                        Text(text = "interest: $${StateUtil.formatCurrency(asset.interest)}")
                     }
                 } else {
                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -134,7 +134,7 @@ fun CardAsset(
             if (asset.locked != .0) {
                 if (asset.asset == Constants.BASE_ASSET) {
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "locked: $${asset.locked.format(2)}")
+                        Text(text = "locked: $${StateUtil.formatCurrency(asset.locked)}")
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 } else {
@@ -142,6 +142,19 @@ fun CardAsset(
                         Text(text = "locked: ${asset.locked}")
                         Spacer(modifier = Modifier.weight(1f))
                     }
+                }
+            }
+            if (state.orders(asset).isNotEmpty()) {
+                Text(text = "Orders:")
+                state.orders(asset).forEach {
+                    Text(
+                        text = "  ${it.side}" +
+                                " ${it.type}" +
+                                " $${it.price.format(StateUtil.decimal(asset.asset))}" +
+                                " ${it.origQty}" +
+                                " $${(StateUtil.formatCurrency(it.price * it.origQty))}",
+                        maxLines = 1
+                    )
                 }
             }
         }

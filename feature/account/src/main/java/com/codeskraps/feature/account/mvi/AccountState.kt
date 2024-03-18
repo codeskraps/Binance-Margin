@@ -7,10 +7,14 @@ import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.AssertSort
 import com.codeskraps.core.domain.model.Asset
 import com.codeskraps.core.domain.model.MarginAccount
+import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.model.Ticker
 import com.codeskraps.core.domain.util.Constants
 import com.codeskraps.feature.account.model.Entry
 import com.codeskraps.core.domain.model.PnLTimeType
+import java.text.NumberFormat
+import java.util.Currency
+import java.util.Locale
 
 data class AccountState(
     val isLoading: Boolean,
@@ -25,7 +29,9 @@ data class AccountState(
     val entries: List<Entry>,
     val pnlEntries: List<Float>,
     val pnlTime: PnLTimeType,
-    val assetsSort: AssertSort
+    val assetsSort: AssertSort,
+    val orders: List<Order>,
+    val maxBorrow: Double
 ) {
     companion object {
         val initial = AccountState(
@@ -41,7 +47,9 @@ data class AccountState(
             entries = emptyList(),
             pnlEntries = emptyList(),
             pnlTime = PnLTimeType.DAY,
-            assetsSort = AssertSort.Value
+            assetsSort = AssertSort.Value,
+            orders = emptyList(),
+            maxBorrow = .0
         )
     }
 
@@ -113,6 +121,10 @@ data class AccountState(
                 ((value(asset) - investedAsset) / investedAsset) * 100
             }
         }.getOrElse { .0 }
+    }
+
+    fun orders(asset: Asset): List<Order> {
+        return orders.filter { it.symbol == "${asset.asset}${Constants.BASE_ASSET}" }
     }
 
     /**

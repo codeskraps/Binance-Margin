@@ -2,6 +2,7 @@ package com.codeskraps.feature.account
 
 import androidx.lifecycle.viewModelScope
 import com.codeskraps.core.domain.model.AssertSort
+import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.model.PnLTimeType
 import com.codeskraps.core.domain.model.Ticker
 import com.codeskraps.core.domain.util.Constants
@@ -65,6 +66,8 @@ class AccountViewModel @Inject constructor(
                 val deferredResults = listOf(
                     async { useCases.getTickers(ArrayList(listOf("BTC${Constants.BASE_ASSET}"))) },
                     async { useCases.getInvested.invoke() },
+                    async { useCases.getOrders() },
+                    async { useCases.getMaxBorrow() },
                     *symbols
                         .map { symbol -> async { useCases.getEntryPrice(symbol) } }
                         .toTypedArray()
@@ -74,7 +77,9 @@ class AccountViewModel @Inject constructor(
 
                 val ticker = (results[0] as List<*>).filterIsInstance<Ticker>()
                 val invested = results[1] as Double
-                val entries = (results.subList(2, results.size) as List<*>)
+                val orders = (results[2] as List<*>).filterIsInstance<Order>()
+                val maxBorrow = results[3] as Double
+                val entries = (results.subList(4, results.size) as List<*>)
                     .filterIsInstance<Double>()
                     .mapIndexed { index, entry ->
                         Entry(
@@ -87,9 +92,18 @@ class AccountViewModel @Inject constructor(
                     ticker.first { it.symbol == "BTC${Constants.BASE_ASSET}" }.price
                 }.getOrElse { .0 }
 
-                state.handleEvent(AccountEvent.AccountLoaded(account, btcPrice, invested, entries))
+                state.handleEvent(
+                    AccountEvent.AccountLoaded(
+                        account,
+                        btcPrice,
+                        invested,
+                        entries,
+                        orders,
+                        maxBorrow
+                    )
+                )
                 state.handleEvent(AccountEvent.LoadTicker)
-                state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTimeUseCase()))
+                state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTime()))
             }
         }
         return currentState.copy(isLoading = true)
@@ -122,7 +136,9 @@ class AccountViewModel @Inject constructor(
             invested = event.invested,
             pnl = totalNetAssetOfUSDT - event.invested,
             pnlPercent = pnlPercent,
-            entries = event.entries
+            entries = event.entries,
+            orders = event.orders,
+            maxBorrow = event.maxBorrow
         )
     }
 

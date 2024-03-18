@@ -10,7 +10,6 @@ import com.codeskraps.core.domain.model.Interval
 import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.util.StateReducerViewModel
 import com.github.mikephil.charting.data.CandleEntry
-import dagger.hilt.android.lifecycle.ActivityRetainedSavedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,10 +45,7 @@ class SymbolViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            useCases.getOrdersUseCase(symbol) {
-                ordersNetworkLoading = !it
-                checkLoading()
-            }.collect {
+            useCases.getOrdersUseCase(symbol).collect {
                 state.handleEvent(SymbolEvent.LoadedOrders(it))
             }
         }
@@ -79,6 +75,9 @@ class SymbolViewModel @Inject constructor(
         currentState: SymbolState,
         orders: List<Order>
     ): SymbolState {
+        ordersNetworkLoading = false
+        checkLoading()
+
         return currentState.copy(orders = orders)
     }
 

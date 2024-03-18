@@ -64,7 +64,7 @@ fun OrderCard(order: Order) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text("type: ${order.type}")
                 Spacer(modifier = Modifier.weight(1f))
-                Text("value: $${(order.price.toDouble() * order.origQty.toDouble()).format(2)}")
+                Text("value: $${StateUtil.formatCurrency(order.price * order.origQty)}")
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text("price: $${order.price.format(StateUtil.decimal(order.symbol))}")

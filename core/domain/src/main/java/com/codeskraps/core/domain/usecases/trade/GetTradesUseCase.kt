@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetTradesUseCase @Inject constructor(
+    private val tradedSymbolsUseCase: GetTradedSymbolsUseCase,
     private val client: BinanceClient,
     private val tradeDao: TradeDao
 ) {
@@ -27,7 +28,8 @@ class GetTradesUseCase @Inject constructor(
 
     private fun clientFlow(network: (Boolean) -> Unit): Flow<List<Trade>> =
         flow {
-            client.trades().let { trades ->
+            val symbols = tradedSymbolsUseCase()
+            client.trades(symbols).let { trades ->
                 tradeDao.updateAll(trades.map { it.toTradeEntity() })
                 network(true)
             }

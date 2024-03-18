@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.codeskraps.core.domain.util.StateUtil
 import com.codeskraps.feature.pnl.mvi.PnLState
 
 @Composable
@@ -19,7 +20,7 @@ fun HeaderItem(
     state: PnLState
 ) {
     Text(text = "PnL")
-    Text(text = "$ ${state.totalPnL.format(2)}", fontSize = 28.sp)
+    Text(text = "$ ${StateUtil.formatCurrency(state.totalPnL)}", fontSize = 28.sp)
     Spacer(modifier = Modifier.width(5.dp))
     Spacer(
         modifier = Modifier
@@ -34,14 +35,17 @@ fun HeaderItem(
         Text(text = "Long: ${state.winingLongTrades}/${state.longTrades}")
     }
     Row(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "PnL: $${state.totalProfit.format(2)}/$${state.totalLoss.format(2)}")
+        Text(
+            text = "PnL: $${StateUtil.formatCurrency(state.totalProfit)}/" +
+                    "$${StateUtil.formatCurrency(state.totalLoss)}"
+        )
         Spacer(modifier = Modifier.weight(1f))
         Text(text = "Short: ${state.winingShortTrades}/${state.shortTrades}")
     }
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(text = "Profit Factor: ${state.profitFactor.format(2)}")
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = "Avg PnL: $${state.averagePnL.format(2)}")
+        Text(text = "Avg PnL: $${StateUtil.formatCurrency(state.averagePnL)}")
     }
     Spacer(modifier = Modifier.height(10.dp))
 }

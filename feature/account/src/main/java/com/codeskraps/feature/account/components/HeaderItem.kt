@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.codeskraps.core.domain.R
+import com.codeskraps.core.domain.util.StateUtil
 import com.codeskraps.feature.account.mvi.AccountState
 
 @Composable
@@ -27,7 +28,7 @@ fun HeaderItem(
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             Column {
                 Text(text = "Total Balance")
-                Text(text = "$ ${state.totalAssetOfUSDT.format(2)}", fontSize = 28.sp)
+                Text(text = "$ ${StateUtil.formatCurrency(state.totalAssetOfUSDT)}", fontSize = 28.sp)
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
@@ -38,7 +39,7 @@ fun HeaderItem(
                     color = state.pnlColor(pnl = state.pnlPercent)
                 )
                 Text(
-                    text = "PnL: $ ${state.pnl.format(2)}",
+                    text = "PnL: $ ${StateUtil.formatCurrency(state.pnl)}",
                     textAlign = TextAlign.End,
                     fontSize = 18.sp,
                     color = state.pnlColor(pnl = state.pnlPercent)
@@ -54,7 +55,7 @@ fun HeaderItem(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Invested: $${state.invested.format(2)}")
+            Text(text = "Invested: $${StateUtil.formatCurrency(state.invested)}")
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "Margin lvl: ${acc.marginLevel.format(2)}",
@@ -62,26 +63,27 @@ fun HeaderItem(
             )
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Net: $${state.totalNetAssetOfUSDT.format(2)}")
+            Text(text = "Net: $${StateUtil.formatCurrency(state.totalNetAssetOfUSDT)}")
             Spacer(modifier = Modifier.weight(1f))
-            Text(text = "Debt: $${state.totalLiabilityOfUSDT.format(2)}")
+            Text(text = "Debt: $${StateUtil.formatCurrency(state.totalLiabilityOfUSDT)}")
         }
         if (state.account.totalCollateralValueInUSDT != .0 || state.account.collateralMarginLevel != .0) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Collateral: $${
-                        state.account.totalCollateralValueInUSDT.format(2)
+                        StateUtil.formatCurrency(state.account.totalCollateralValueInUSDT)
                     }"
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "Col. level: ${state.account.collateralMarginLevel.format(2)}")
+                Text(text = "Col. level: ${StateUtil.formatCurrency(state.account.collateralMarginLevel)}")
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Entry: $${state.entryValueAssets.format(2)}")
+            Text(text = "Entry: $${StateUtil.formatCurrency(state.entryValueAssets)}")
             Spacer(modifier = Modifier.weight(1f))
-            Text(text = "Assets: $${state.valueAssets.format(2)}")
+            Text(text = "Assets: $${StateUtil.formatCurrency(state.valueAssets)}")
         }
+        Text(text = "Max Borrow: $${StateUtil.formatCurrency(state.maxBorrow)}")
         Enabled(status = state.account.borrowEnabled, message = "Borrow Enabled: ")
         Enabled(status = state.account.tradeEnabled, message = "Trade Enabled: ")
         Enabled(status = state.account.transferEnabled, message = "Transfer Enabled: ")

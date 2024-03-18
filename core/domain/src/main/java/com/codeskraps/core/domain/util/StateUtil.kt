@@ -3,6 +3,9 @@ package com.codeskraps.core.domain.util
 import com.codeskraps.core.client.BinanceClient
 import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.Asset
+import java.text.NumberFormat
+import java.util.Currency
+import java.util.Locale
 
 object StateUtil {
     fun logo(asset: Asset): Int {
@@ -51,6 +54,8 @@ object StateUtil {
             "SEI" -> R.drawable.sei_network_logo
             "APE" -> R.drawable.apecoin_ape_ape_logo
             "WIF" -> R.drawable.dog_wif_hat_logo
+            "OP" -> R.drawable.optimism_ethereum_op_logo
+            "ICP" -> R.drawable.internet_computer_icp_logo
             else -> 0
         }
     }
@@ -64,9 +69,18 @@ object StateUtil {
             "BONK", "WIF" -> 8
             "MANTA", "VET", "DOGE", "TRX" -> 5
             "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "FTM", "ALGO", "SUPER", "XRP", "APT", "IOTA", "GALA", "SEI" -> 4
-            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE" -> 3
+            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE", "OP", "ICP" -> 3
             "BNB", "BTC", "ETH" -> 1
             else -> 2
         }
+    }
+
+    fun formatCurrency(amount: Double): String {
+        val currencyCode = "USD"
+        val currencyInstance = Currency.getInstance(currencyCode)
+        val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        formatter.currency = currencyInstance
+        val formattedAmount = formatter.format(amount)
+        return formattedAmount.replace(currencyInstance.symbol, "")
     }
 }

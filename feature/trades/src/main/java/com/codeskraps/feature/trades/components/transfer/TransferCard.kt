@@ -80,7 +80,7 @@ fun TransferCard(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text("type: ${transfer.type}")
                 Spacer(modifier = Modifier.weight(1f))
-                Text("value: $${(transfer.price * transfer.amount).format(2)}")
+                Text("value: $${StateUtil.formatCurrency(transfer.price * transfer.amount)}")
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 val price = if (transfer.price == 0.0) "Enter Price" else "$${
