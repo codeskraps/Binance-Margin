@@ -5,9 +5,16 @@ import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.realm.model.TradeEntity
 
 fun TradeDto.toTradeEntity(): TradeEntity {
+    val updatedSymbol = if (symbol.endsWith("USDC")) {
+        symbol.replace("USDC", "USDT")
+    } else if (symbol.endsWith("FDUSD")) {
+        symbol.replace("FDUSD", "USDT")
+    } else {
+        symbol
+    }
     return TradeEntity(
         orderId = orderId,
-        symbol = symbol,
+        symbol = updatedSymbol,
         id = id,
         price = price,
         qty = qty,

@@ -86,7 +86,7 @@ class PnLViewModel @Inject constructor(
         var totalProfit = .0
         var totalLoss = .0
 
-        val pnlEntries = finishTrades.map {
+        val pnlEntries = finishTrades.reversed().map {
             if (it.pnl.toFloat() > 0) {
                 winingTrades++
                 totalProfit += it.pnl

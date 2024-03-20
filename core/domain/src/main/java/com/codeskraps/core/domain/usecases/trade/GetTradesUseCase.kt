@@ -29,6 +29,12 @@ class GetTradesUseCase @Inject constructor(
     private fun clientFlow(network: (Boolean) -> Unit): Flow<List<Trade>> =
         flow {
             val symbols = tradedSymbolsUseCase()
+                .toMutableList()
+                .apply {
+                    add("BTCUSDC")
+                    add("ETHFDUSD")
+                }
+
             client.trades(symbols).let { trades ->
                 tradeDao.updateAll(trades.map { it.toTradeEntity() })
                 network(true)
