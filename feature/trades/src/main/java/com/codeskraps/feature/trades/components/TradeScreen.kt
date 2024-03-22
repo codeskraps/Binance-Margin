@@ -1,6 +1,7 @@
 package com.codeskraps.feature.trades.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +24,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -37,8 +42,9 @@ import com.codeskraps.feature.trades.components.trade.TradesScreen
 import com.codeskraps.feature.trades.components.transfer.TransfersScreen
 import com.codeskraps.feature.trades.mvi.TradeEvent
 import com.codeskraps.feature.trades.mvi.TradesState
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TradeScreen(
     modifier: Modifier,
@@ -52,6 +58,7 @@ fun TradeScreen(
         }
     }
 
+    val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
 
     val scrollBehavior = when (configuration.orientation) {
@@ -106,26 +113,33 @@ fun TradeScreen(
                     .background(MaterialTheme.colorScheme.secondaryContainer)
             )
 
-            var tabIndex by remember { mutableIntStateOf(0) }
             val tabs = listOf(
                 "Trades(${state.trades.size})",
                 "Orders(${state.orders.size})",
                 "Transfers(${state.transfers.size})"
             )
+            val pagerState = rememberPagerState(pageCount = { tabs.size })
+            val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
 
-            TabRow(selectedTabIndex = tabIndex) {
+            TabRow(selectedTabIndex = selectedTabIndex.value) {
                 tabs.forEachIndexed { index, title ->
                     Tab(text = { Text(title) },
-                        selected = tabIndex == index,
-                        onClick = { tabIndex = index }
+                        selected = selectedTabIndex.value == index,
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        }
                     )
                 }
             }
 
-            when (tabIndex) {
-                0 -> TradesScreen(state, handleEvent)
-                1 -> OrdersScreen(state, handleEvent)
-                2 -> TransfersScreen(state, handleEvent)
+            HorizontalPager(state = pagerState) { page ->
+                when (page) {
+                    0 -> TradesScreen(state, handleEvent)
+                    1 -> OrdersScreen(state, handleEvent)
+                    2 -> TransfersScreen(state, handleEvent)
+                }
             }
         }
     }

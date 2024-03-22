@@ -1,4 +1,4 @@
-package ch.vilea.swisscom.feature.symbol.components
+package com.codeskraps.feature.symbol.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ButtonDefaults
@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import ch.vilea.swisscom.feature.symbol.mvi.SymbolEvent
+import com.codeskraps.feature.symbol.mvi.SymbolEvent
 import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.Interval
 
@@ -25,7 +25,9 @@ fun ChartTimeButton(
     }
 
     OutlinedButton(
-        onClick = { handleEvent(SymbolEvent.ChartTimeChanged(interval)) },
+        onClick = {
+            if (!selected) handleEvent(SymbolEvent.ChartTimeChanged(interval))
+        },
         colors = ButtonDefaults.buttonColors(
             containerColor = color
         ),

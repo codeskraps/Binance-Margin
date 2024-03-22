@@ -1,4 +1,4 @@
-package ch.vilea.swisscom.feature.symbol.components
+package com.codeskraps.feature.symbol.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

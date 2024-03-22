@@ -1,5 +1,6 @@
-package ch.vilea.swisscom.feature.symbol.mvi
+package com.codeskraps.feature.symbol.mvi
 
+import com.codeskraps.feature.symbol.SuperGuppy
 import com.codeskraps.core.domain.model.Interval
 import com.codeskraps.core.domain.model.Order
 import com.github.mikephil.charting.data.CandleEntry
@@ -10,5 +11,7 @@ sealed interface SymbolEvent {
     data class LoadedCandles(val candles: List<CandleEntry>) : SymbolEvent
     data class LoadedOrders(val orders: List<Order>) : SymbolEvent
     data class ChartTimeChanged(val interval: Interval) : SymbolEvent
+    data class SuperGuppyLoaded(val superGuppy: SuperGuppy) : SymbolEvent
     data object StopLoading : SymbolEvent
+    data class VisibilityChanged(val visibility: Boolean) : SymbolEvent
 }

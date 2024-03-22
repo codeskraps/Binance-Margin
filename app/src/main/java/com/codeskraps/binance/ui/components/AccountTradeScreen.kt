@@ -49,10 +49,12 @@ fun AccountTradeScreen(
                 NavigationBarItem(
                     selected = selectedTabIndex == 0,
                     onClick = {
-                        selectedTabIndex = 0
-                        navController.navigate(Screen.Account.route) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = false
+                        if (selectedTabIndex != 0) {
+                            selectedTabIndex = 0
+                            navController.navigate(Screen.Account.route) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = false
+                                }
                             }
                         }
                     },
@@ -65,10 +67,12 @@ fun AccountTradeScreen(
                 NavigationBarItem(
                     selected = selectedTabIndex == 1,
                     onClick = {
-                        selectedTabIndex = 1
-                        navController.navigate(Screen.PnL.route) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = false
+                        if (selectedTabIndex != 1) {
+                            selectedTabIndex = 1
+                            navController.navigate(Screen.PnL.route) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = false
+                                }
                             }
                         }
                     },
@@ -81,10 +85,12 @@ fun AccountTradeScreen(
                 NavigationBarItem(
                     selected = selectedTabIndex == 2,
                     onClick = {
-                        selectedTabIndex = 2
-                        navController.navigate(Screen.Trade.route) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = false
+                        if (selectedTabIndex != 2) {
+                            selectedTabIndex = 2
+                            navController.navigate(Screen.Trade.route) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = false
+                                }
                             }
                         }
                     },

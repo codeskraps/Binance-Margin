@@ -14,14 +14,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import ch.vilea.swisscom.feature.symbol.SymbolViewModel
-import ch.vilea.swisscom.feature.symbol.components.SymbolScreen
-import ch.vilea.swisscom.feature.symbol.mvi.SymbolEvent
+import com.codeskraps.feature.symbol.SymbolViewModel
+import com.codeskraps.feature.symbol.components.SymbolScreen
 import com.codeskraps.core.domain.navigation.Screen
 import com.codeskraps.binance.ui.components.AccountTradeScreen
 import com.codeskraps.binance.ui.components.SetUpScreen
 import com.codeskraps.binance.ui.mvi.MainActivityEvent
-import com.codeskraps.binance.ui.mvi.MainActivityState
 import com.codeskraps.core.domain.theme.BinanceTheme
 import com.codeskraps.feature.settings.SettingsViewModel
 import com.codeskraps.feature.settings.components.SettingsScreen

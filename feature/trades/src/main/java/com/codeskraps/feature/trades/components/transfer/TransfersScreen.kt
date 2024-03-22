@@ -1,6 +1,8 @@
 package com.codeskraps.feature.trades.components.transfer
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,15 +19,21 @@ fun TransfersScreen(
     handleEvent: (TradeEvent) -> Unit
 ) {
     if (state.transfers.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(10.dp))
-        LazyColumn(
-            modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 10.dp, end = 10.dp)
         ) {
-            items(state.transfers) { transfer ->
-                TransferCard(
-                    transfer = transfer,
-                    handleEvent = handleEvent
-                )
+            LazyColumn {
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+                items(state.transfers) { transfer ->
+                    TransferCard(
+                        transfer = transfer,
+                        handleEvent = handleEvent
+                    )
+                }
             }
         }
     }

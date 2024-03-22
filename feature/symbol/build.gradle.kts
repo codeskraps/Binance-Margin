@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "ch.vilea.swisscom.feature.symbol"
+    namespace = "com.codeskraps.feature.symbol"
     compileSdk = ConfigData.compileSdk
 
     defaultConfig {
@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)

@@ -129,7 +129,9 @@ fun PnLTimeButton(
     }
 
     OutlinedButton(
-        onClick = { handleEvent(AccountEvent.PnLTimeChanged(pnlTime)) },
+        onClick = {
+            if (!selected) handleEvent(AccountEvent.PnLTimeChanged(pnlTime))
+        },
         colors = ButtonDefaults.buttonColors(
             containerColor = color
         ),

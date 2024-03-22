@@ -1,4 +1,4 @@
-package ch.vilea.swisscom.feature.symbol.components
+package com.codeskraps.feature.symbol.components
 
 import android.graphics.Color
 import android.graphics.Paint
@@ -12,23 +12,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.res.ResourcesCompat
+import com.codeskraps.feature.symbol.SuperGuppy
 import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.Order
-import com.github.mikephil.charting.charts.CandleStickChart
+import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.CandleData
 import com.github.mikephil.charting.data.CandleDataSet
 import com.github.mikephil.charting.data.CandleEntry
+import com.github.mikephil.charting.data.CombinedData
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.utils.Utils
 
 
 @Composable
 fun SymbolChart(
     entries: List<CandleEntry>,
+    superGuppy: SuperGuppy?,
     entry: Double,
-    orders: List<Order>
+    orders: List<Order>,
+    visibility: Boolean
 ) {
     Utils.init(LocalContext.current)
     val resources = LocalContext.current.resources
@@ -59,7 +65,7 @@ fun SymbolChart(
             .fillMaxWidth()
             .height(200.dp),
         factory = { context ->
-            CandleStickChart(context).apply {
+            CombinedChart(context).apply {
                 setBackgroundColor(backgroundColor)
                 isHighlightPerDragEnabled = false
                 legend.isEnabled = false
@@ -86,19 +92,55 @@ fun SymbolChart(
             }
         },
         update = { chart ->
-            chart.data = CandleData(CandleDataSet(entries, "Candles").apply {
-                setDrawIcons(false)
-                setColor(Color.rgb(80, 80, 80))
-                axisDependency = YAxis.AxisDependency.LEFT
-                shadowColor = Color.GRAY
-                shadowWidth = 0.7f
-                decreasingColor = redColor
-                decreasingPaintStyle = Paint.Style.FILL_AND_STROKE
-                increasingColor = greenColor
-                increasingPaintStyle = Paint.Style.FILL_AND_STROKE
-                neutralColor = Color.BLUE
-                highlightLineWidth = 2f
-            })
+            chart.data = CombinedData().apply {
+                setData(CandleData(
+                    CandleDataSet(entries, "Candles").apply {
+                        setDrawIcons(false)
+                        setColor(Color.rgb(80, 80, 80))
+                        axisDependency = YAxis.AxisDependency.LEFT
+                        shadowColor = Color.GRAY
+                        shadowWidth = 0.7f
+                        decreasingColor = redColor
+                        decreasingPaintStyle = Paint.Style.FILL_AND_STROKE
+                        increasingColor = greenColor
+                        increasingPaintStyle = Paint.Style.FILL_AND_STROKE
+                        neutralColor = Color.BLUE
+                        highlightLineWidth = 2f
+                    }
+                ))
+                if (visibility) {
+                    superGuppy?.let {
+                        setData(LineData(
+                            listOf(
+                                LineDataSet(it.fast, "Fast").apply {
+                                    setDrawIcons(false)
+                                    setDrawCircles(false)
+                                    setDrawValues(false)
+                                    axisDependency = YAxis.AxisDependency.LEFT
+                                    color = superGuppy.colFinal
+                                    lineWidth = 1f
+                                },
+                                LineDataSet(it.med, "Med").apply {
+                                    setDrawIcons(false)
+                                    setDrawCircles(false)
+                                    setDrawValues(false)
+                                    axisDependency = YAxis.AxisDependency.LEFT
+                                    color = superGuppy.colFinal2
+                                    lineWidth = 1f
+                                },
+                                LineDataSet(it.slow, "Slow").apply {
+                                    setDrawIcons(false)
+                                    setDrawCircles(false)
+                                    setDrawValues(false)
+                                    axisDependency = YAxis.AxisDependency.LEFT
+                                    color = superGuppy.colFinal2
+                                    lineWidth = 1f
+                                }
+                            )
+                        ))
+                    }
+                }
+            }
             chart.invalidate()
         }
     )

@@ -1,4 +1,4 @@
-package ch.vilea.swisscom.feature.symbol.components
+package com.codeskraps.feature.symbol.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,8 +34,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import ch.vilea.swisscom.feature.symbol.mvi.SymbolEvent
-import ch.vilea.swisscom.feature.symbol.mvi.SymbolState
+import com.codeskraps.feature.symbol.mvi.SymbolEvent
+import com.codeskraps.feature.symbol.mvi.SymbolState
 import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.model.Interval
 import com.codeskraps.core.domain.util.StateUtil
@@ -110,12 +113,38 @@ fun SymbolScreen(
             ) {
                 Text(text = state.symbol)
 
+                Spacer(modifier = Modifier.height(10.dp))
+                val price = state.entries.lastOrNull()?.close ?: 0.0
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text("entry: $${state.entry.format(StateUtil.decimal(state.symbol))}")
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text("ticker: ${price.toDouble().format(StateUtil.decimal(state.symbol))}")
+                }
+
                 if (state.entries.isNotEmpty()) {
-                    SymbolChart(
-                        entries = state.entries,
-                        entry = state.entry,
-                        orders = state.orders
-                    )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        SymbolChart(
+                            entries = state.entries,
+                            superGuppy = state.superGuppy,
+                            entry = state.entry,
+                            orders = state.orders,
+                            visibility = state.visibility
+                        )
+
+                        val icon = if (state.visibility)
+                            R.drawable.ic_visibility
+                        else R.drawable.ic_visibility_off
+
+                        IconButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(10.dp),
+                            onClick = {
+                                handleEvent(SymbolEvent.VisibilityChanged(!state.visibility))
+                            }) {
+                            Icon(painter = painterResource(id = icon), contentDescription = null)
+                        }
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -131,14 +160,6 @@ fun SymbolScreen(
                             )
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-                val price = state.entries.lastOrNull()?.close ?: 0.0
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Text("entry: $${state.entry.format(StateUtil.decimal(state.symbol))}")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text("ticker: ${price.toDouble().format(StateUtil.decimal(state.symbol))}")
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
