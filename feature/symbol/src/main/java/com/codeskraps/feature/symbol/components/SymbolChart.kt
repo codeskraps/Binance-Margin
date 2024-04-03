@@ -43,13 +43,20 @@ fun SymbolChart(
     val greenColor = ResourcesCompat.getColor(resources, R.color.margin_level_green, null)
     val amberColor = ResourcesCompat.getColor(resources, R.color.margin_level_amber, null)
 
-    val entryLimit = LimitLine(entry.toFloat(), "Entry").apply {
+    val priceLimit = LimitLine(entries.last().close, "Price").apply {
+        setLineWidth(1f)
+        enableDashedLine(10f, 10f, 0f)
+        labelPosition = LimitLabelPosition.RIGHT_TOP
+        lineColor = Color.WHITE
+        setTextSize(10f)
+    }
+    val entryLimit = if (entry != .0) LimitLine(entry.toFloat(), "Entry").apply {
         setLineWidth(2f)
         //ll1.enableDashedLine(10f, 10f, 0f)
         labelPosition = LimitLabelPosition.RIGHT_TOP
         lineColor = amberColor
         setTextSize(10f)
-    }
+    } else null
     val orderLimits = orders.map { order ->
         LimitLine(order.price.toFloat(), order.side).apply {
             setLineWidth(2f)
@@ -73,7 +80,8 @@ fun SymbolChart(
                 with(axisLeft) {
                     setDrawLabels(false)
                     removeAllLimitLines()
-                    addLimitLine(entryLimit)
+                    addLimitLine(priceLimit)
+                    entryLimit?.let { addLimitLine(it) }
                     orderLimits.forEach { addLimitLine(it) }
                 }
 

@@ -14,4 +14,6 @@ sealed interface SymbolEvent {
     data class SuperGuppyLoaded(val superGuppy: SuperGuppy) : SymbolEvent
     data object StopLoading : SymbolEvent
     data class VisibilityChanged(val visibility: Boolean) : SymbolEvent
+    data class RSI(val rsi: List<Float>) : SymbolEvent
+    data class StochRSI(val stochRSI: List<Pair<Float, Float>>) : SymbolEvent
 }

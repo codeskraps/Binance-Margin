@@ -39,7 +39,6 @@ class BinanceClient @Inject constructor(
         const val BASE_ASSET = "USDT"
         private val TAG = BinanceClient::class.java.simpleName
         private const val STEP = 5
-        private const val SECOND_IN_MILLIS: Long = 1000
     }
 
     private val margin by lazy { client.createMargin() }
@@ -123,7 +122,10 @@ class BinanceClient @Inject constructor(
             dataList ?: emptyList()
 
         }.getOrElse {
-            Log.e(TAG, "Klines: $it")
+            Log.e(TAG, "$symbol, Klines: $it")
+            if (it.message?.contains("-1121") == true) {
+                store.badSymbols = store.badSymbols.plus(symbol)
+            }
             emptyList()
         }
     }
@@ -236,6 +238,10 @@ class BinanceClient @Inject constructor(
     }
 
     suspend fun orders(symbol: String): Response<List<OrderDto>, OrderError> {
+        if (store.badSymbols.contains(symbol)) {
+            return Response.Failure(OrderError.BAD_SYMBOL)
+        }
+
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["symbol"] = symbol
@@ -261,6 +267,7 @@ class BinanceClient @Inject constructor(
             if (it.message?.contains("-1003") == true) {
                 Response.Failure(OrderError.LIMIT_REACHED)
             } else if (it.message?.contains("-1121") == true) {
+                store.badSymbols = store.badSymbols.plus(symbol)
                 Response.Failure(OrderError.BAD_SYMBOL)
             } else {
                 Response.Failure(OrderError.UNKNOWN)
@@ -305,7 +312,7 @@ class BinanceClient @Inject constructor(
         }
     }
 
-    fun maxBorrow():Double {
+    fun maxBorrow(): Double {
         return runCatching {
             val parameters: MutableMap<String, Any> = LinkedHashMap()
             parameters["asset"] = BASE_ASSET
@@ -315,7 +322,7 @@ class BinanceClient @Inject constructor(
                 moshi.adapter(MaxBorrowDto::class.java)
             val maxBorrowDto = jsonAdapter.fromJson(json) ?: MaxBorrowDto()
             maxBorrowDto.amount.toDouble()
-        } .getOrElse {
+        }.getOrElse {
             Log.e(TAG, "Max Borrow: $it")
             MaxBorrowDto().amount.toDouble()
         }
@@ -324,13 +331,12 @@ class BinanceClient @Inject constructor(
     private fun sanitizeSymbols(symbols: List<String>): ArrayList<String> {
         val newSymbols = ArrayList(symbols)
         newSymbols.removeAll(badSymbols())
-        newSymbols.remove("BTC$BASE_ASSET")
-        newSymbols.add("BTC$BASE_ASSET")
+        if (!newSymbols.contains("BTC$BASE_ASSET")) newSymbols.add("BTC$BASE_ASSET")
         return newSymbols
     }
 
     private fun badSymbols(): Set<String> {
-        return setOf("$BASE_ASSET$BASE_ASSET", "FDUSD$BASE_ASSET", "USDTUSDT")
+        return setOf("$BASE_ASSET$BASE_ASSET", "FDUSD$BASE_ASSET", "USDCUSDT")
     }
 
     private fun calculateAverageEntryPrice(

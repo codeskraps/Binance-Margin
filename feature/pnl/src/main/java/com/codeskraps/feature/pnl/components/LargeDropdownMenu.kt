@@ -151,14 +151,12 @@ fun LargeDropdownMenuItem(
             .clickable(enabled) { onClick() }
             .fillMaxWidth()
             .padding(16.dp)) {
-            if (StateUtil.logo(text) != 0) {
-                Image(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(id = StateUtil.logo(text)),
-                    contentDescription = "logo"
-                )
-                Spacer(modifier = Modifier.width(15.dp))
-            }
+            Image(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(id = StateUtil.logo(text)),
+                contentDescription = "logo"
+            )
+            Spacer(modifier = Modifier.width(15.dp))
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleSmall,

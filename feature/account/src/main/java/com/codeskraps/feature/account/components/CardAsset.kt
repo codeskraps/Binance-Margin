@@ -60,15 +60,13 @@ fun CardAsset(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
-                if (StateUtil.logo(asset) != 0) {
-                    Image(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(bottom = 5.dp),
-                        painter = painterResource(id = StateUtil.logo(asset)),
-                        contentDescription = "logo"
-                    )
-                }
+                Image(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(bottom = 5.dp),
+                    painter = painterResource(id = StateUtil.logo(asset)),
+                    contentDescription = "logo"
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = "${asset.asset} $${StateUtil.formatCurrency(state.value(asset))}",

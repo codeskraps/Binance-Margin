@@ -22,6 +22,9 @@ class SymbolViewModel @Inject constructor(
     private val savedState: SavedStateHandle
 ) : StateReducerViewModel<SymbolState, SymbolEvent, SymbolAction>(SymbolState.initialState) {
 
+    companion object {
+        private const val CHART_LENGTH = 100
+    }
     private var candlesNetworkLoading: Boolean = true
     private var ordersNetworkLoading: Boolean = true
     override fun reduceState(currentState: SymbolState, event: SymbolEvent): SymbolState {
@@ -34,6 +37,8 @@ class SymbolViewModel @Inject constructor(
             is SymbolEvent.SuperGuppyLoaded -> onSuperGuppyLoaded(currentState, event.superGuppy)
             is SymbolEvent.StopLoading -> onStopLoading(currentState)
             is SymbolEvent.VisibilityChanged -> onVisibilityChanged(currentState, event.visibility)
+            is SymbolEvent.RSI -> onRSI(currentState, event.rsi)
+            is SymbolEvent.StochRSI -> onStochRSI(currentState, event.stochRSI)
         }
     }
 
@@ -109,17 +114,28 @@ class SymbolViewModel @Inject constructor(
     }
 
     private fun onVisibilityChanged(currentState: SymbolState, visibility: Boolean): SymbolState {
-        return currentState.copy(
-            visibility = visibility
-        )
+        return currentState.copy(visibility = visibility)
+    }
+
+    private fun onRSI(currentState: SymbolState, rsi: List<Float>): SymbolState {
+        return currentState.copy(rsi = rsi)
+    }
+
+    private fun onStochRSI(
+        currentState: SymbolState,
+        stochRSI: List<Pair<Float, Float>>
+    ): SymbolState {
+        return currentState.copy(stochRSI = stochRSI)
     }
 
     private fun candles(symbol: String, interval: Interval) {
         viewModelScope.launch(Dispatchers.IO) {
             val candles = useCases.getCandles(symbol, interval, 200)
             superGuppy(candles)
+            //rsi(candles)
+            stochasticRSI(candles)
 
-            val candleEntries = candles.takeLast(100).map()
+            val candleEntries = candles.takeLast(CHART_LENGTH).map()
 
             state.handleEvent(SymbolEvent.LoadedCandles(candleEntries))
         }
@@ -147,6 +163,20 @@ class SymbolViewModel @Inject constructor(
         }
     }
 
+    private fun rsi(candles: List<Candle>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val rsi = useCases.rsi(candles)
+            state.handleEvent(SymbolEvent.RSI(rsi.takeLast(CHART_LENGTH)))
+        }
+    }
+
+    private fun stochasticRSI(candles: List<Candle>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val stochRSI = useCases.stochRSI(candles)
+            state.handleEvent(SymbolEvent.StochRSI(stochRSI.takeLast(CHART_LENGTH)))
+        }
+    }
+
     private fun checkLoading() {
         if (!candlesNetworkLoading && !ordersNetworkLoading) {
             state.handleEvent(SymbolEvent.StopLoading)
@@ -160,8 +190,8 @@ class SymbolViewModel @Inject constructor(
     }
 
     private fun List<Float>.map(candles: List<Candle>): List<Entry> {
-        return takeLast(100)
-            .zip(candles.takeLast(100))
+        return takeLast(CHART_LENGTH)
+            .zip(candles.takeLast(CHART_LENGTH))
             .map { (value, candleEntry) ->
                 Entry(candleEntry.closeTime, value)
             }

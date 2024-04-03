@@ -32,6 +32,7 @@
             <option value="$PROJECT_DIR$/feature/settings" />
             <option value="$PROJECT_DIR$/feature/symbol" />
             <option value="$PROJECT_DIR$/feature/trades" />
+            <option value="$PROJECT_DIR$/feature/watchlist" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

@@ -116,7 +116,10 @@ fun SymbolScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 val price = state.entries.lastOrNull()?.close ?: 0.0
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text("entry: $${state.entry.format(StateUtil.decimal(state.symbol))}")
+                    val entry =
+                        if (state.entry != .0) "entry: $${state.entry.format(StateUtil.decimal(state.symbol))}"
+                        else ""
+                    Text(text = entry)
                     Spacer(modifier = Modifier.weight(1f))
                     Text("ticker: ${price.toDouble().format(StateUtil.decimal(state.symbol))}")
                 }
@@ -160,6 +163,16 @@ fun SymbolScreen(
                             )
                         }
                     }
+                }
+
+                if (state.rsi.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    RSIChart(rsi = state.rsi)
+                }
+
+                if (state.stochRSI.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    StochRSIChart(stochRsi = state.stochRSI)
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))

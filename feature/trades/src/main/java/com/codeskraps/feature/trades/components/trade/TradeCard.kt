@@ -36,15 +36,13 @@ fun TradeCard(trade: Trade) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
-                if (StateUtil.logo(trade.symbol) != 0) {
-                    Image(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(bottom = 5.dp),
-                        painter = painterResource(id = StateUtil.logo(trade.symbol)),
-                        contentDescription = "logo"
-                    )
-                }
+                Image(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(bottom = 5.dp),
+                    painter = painterResource(id = StateUtil.logo(trade.symbol)),
+                    contentDescription = "logo"
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = trade.symbol,

@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -28,6 +29,8 @@ import com.codeskraps.feature.pnl.PnLViewModel
 import com.codeskraps.feature.pnl.components.FinishTradesScreen
 import com.codeskraps.feature.trades.TradeViewModel
 import com.codeskraps.feature.trades.components.TradeScreen
+import com.codeskraps.feature.watchlist.WatchlistViewModel
+import com.codeskraps.feature.watchlist.components.WatchlistScreen
 
 @Composable
 fun AccountTradeScreen(
@@ -37,6 +40,7 @@ fun AccountTradeScreen(
     val navController = rememberNavController()
 
     val accViewModel = hiltViewModel<AccountViewModel>()
+    val watchlistViewModel = hiltViewModel<WatchlistViewModel>()
     val pnlViewModel = hiltViewModel<PnLViewModel>()
     val tradeViewModel = hiltViewModel<TradeViewModel>()
 
@@ -69,6 +73,24 @@ fun AccountTradeScreen(
                     onClick = {
                         if (selectedTabIndex != 1) {
                             selectedTabIndex = 1
+                            navController.navigate(Screen.Watchlist.route) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = false
+                                }
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_favorite),
+                            contentDescription = null
+                        )
+                    })
+                NavigationBarItem(
+                    selected = selectedTabIndex == 2,
+                    onClick = {
+                        if (selectedTabIndex != 2) {
+                            selectedTabIndex = 2
                             navController.navigate(Screen.PnL.route) {
                                 popUpTo(navController.graph.id) {
                                     inclusive = false
@@ -83,10 +105,10 @@ fun AccountTradeScreen(
                         )
                     })
                 NavigationBarItem(
-                    selected = selectedTabIndex == 2,
+                    selected = selectedTabIndex == 3,
                     onClick = {
-                        if (selectedTabIndex != 2) {
-                            selectedTabIndex = 2
+                        if (selectedTabIndex != 3) {
+                            selectedTabIndex = 3
                             navController.navigate(Screen.Trade.route) {
                                 popUpTo(navController.graph.id) {
                                     inclusive = false
@@ -130,6 +152,21 @@ fun AccountTradeScreen(
 
                         else -> {}
                     }
+                }
+            }
+            composable(
+                route = Screen.Watchlist.route
+            ) {
+                val state by watchlistViewModel.state.collectAsStateWithLifecycle()
+
+                WatchlistScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    state = state,
+                    handleEvent = watchlistViewModel.state::handleEvent,
+                ) { route ->
+                    navRoute(route)
                 }
             }
             composable(

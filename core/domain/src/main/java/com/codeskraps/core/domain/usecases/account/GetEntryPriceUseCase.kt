@@ -22,7 +22,7 @@ class GetEntryPriceUseCase @Inject constructor(
 
     companion object {
         private val TAG = GetEntryPriceUseCase::class.java.simpleName
-        private const val LOG_ASSET = "CAKE"
+        private const val LOG_ASSET = "ARB"
     }
 
     data class CalcData(
@@ -164,7 +164,7 @@ class GetEntryPriceUseCase @Inject constructor(
             // closing shorts
             val tradePercent = ((trade.price - calcData.avgPrice) / calcData.avgPrice) * -100
             calcData.pnl += ((trade.price - calcData.avgPrice) * trade.qty) * -1
-            calcData.pnlPercent = (calcData.pnlPercent + tradePercent) / 2
+            calcData.pnlPercent += tradePercent
             calcData.entryPrice = calcData.avgPrice
             calcData.exitPrice = trade.price
             calcData.totalQty = .0
@@ -180,6 +180,9 @@ class GetEntryPriceUseCase @Inject constructor(
                 calcData.totalQty = trade.qty
                 calcData.avgPrice = trade.price
                 calcData.entryTime = trade.time()
+
+                log(trade.symbol, "Opening Long -> $calcData")
+
             } else {
                 calcData.avgPrice = calculateAverageEntryPrice(
                     holdingQuantity = calcData.totalQty,
@@ -188,10 +191,10 @@ class GetEntryPriceUseCase @Inject constructor(
                     tradePrice = trade.price
                 )
                 calcData.totalQty += trade.qty
+
+                log(trade.symbol, "Increasing Long -> $calcData")
             }
             calcData.trades++
-
-            log(trade.symbol, "Opening Long -> $calcData")
 
         } else if (!trade.isBuyer
             && (calcData.totalQty - trade.qty == .0
@@ -200,7 +203,7 @@ class GetEntryPriceUseCase @Inject constructor(
             // closing longs
             val tradePercent = ((trade.price - calcData.avgPrice) / calcData.avgPrice) * 100
             calcData.pnl += (trade.price - calcData.avgPrice) * trade.qty
-            calcData.pnlPercent = (calcData.pnlPercent + tradePercent) / 2
+            calcData.pnlPercent += tradePercent
             calcData.entryPrice = calcData.avgPrice
             calcData.exitPrice = trade.price
             calcData.totalQty = .0
@@ -214,7 +217,7 @@ class GetEntryPriceUseCase @Inject constructor(
             // closing longs
             val tradePercent = ((trade.price - calcData.avgPrice) / calcData.avgPrice) * 100
             calcData.pnl += (trade.price - calcData.avgPrice) * trade.qty
-            calcData.pnlPercent = (calcData.pnlPercent + tradePercent) / 2
+            calcData.pnlPercent += tradePercent
             calcData.totalQty -= trade.qty
             calcData.trades++
 
@@ -226,6 +229,9 @@ class GetEntryPriceUseCase @Inject constructor(
                 calcData.totalQty = -trade.qty
                 calcData.avgPrice = trade.price
                 calcData.entryTime = trade.time()
+
+                log(trade.symbol, "Opening Short -> $calcData")
+
             } else {
                 calcData.avgPrice = calculateAverageEntryPrice(
                     holdingQuantity = calcData.totalQty.absoluteValue,
@@ -234,16 +240,16 @@ class GetEntryPriceUseCase @Inject constructor(
                     tradePrice = trade.price
                 )
                 calcData.totalQty -= trade.qty
+
+                log(trade.symbol, "Increasing Short -> $calcData")
             }
             calcData.trades++
-
-            log(trade.symbol, "Opening Short -> $calcData")
 
         } else if (trade.isBuyer && calcData.totalQty + trade.qty < .0) {
             // closing shorts
             val tradePercent = ((trade.price - calcData.avgPrice) / calcData.avgPrice) * -100
             calcData.pnl += ((trade.price - calcData.avgPrice) * trade.qty) * -1
-            calcData.pnlPercent = (calcData.pnlPercent + tradePercent) / 2
+            calcData.pnlPercent += tradePercent
             calcData.totalQty += trade.qty
             calcData.trades++
 

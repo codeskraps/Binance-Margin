@@ -1,4 +1,4 @@
-package ch.vilea.swisscom.feature.symbol
+package com.codeskraps.feature.watchlist
 
 import org.junit.Test
 

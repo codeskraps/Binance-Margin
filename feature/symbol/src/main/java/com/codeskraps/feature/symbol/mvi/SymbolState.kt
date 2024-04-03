@@ -13,7 +13,9 @@ data class SymbolState(
     val entry: Double,
     val orders: List<Order>,
     val superGuppy: SuperGuppy?,
-    val visibility: Boolean
+    val visibility: Boolean,
+    val rsi: List<Float>,
+    val stochRSI: List<Pair<Float, Float>>
 ) {
     companion object {
         val initialState = SymbolState(
@@ -24,7 +26,9 @@ data class SymbolState(
             entry = .0,
             orders = emptyList(),
             superGuppy = null,
-            visibility = true
+            visibility = true,
+            rsi = emptyList(),
+            stochRSI = emptyList()
         )
     }
 }

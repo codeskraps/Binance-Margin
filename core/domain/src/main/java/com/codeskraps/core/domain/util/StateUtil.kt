@@ -56,7 +56,8 @@ object StateUtil {
             "WIF" -> R.drawable.dog_wif_hat_logo
             "OP" -> R.drawable.optimism_ethereum_op_logo
             "ICP" -> R.drawable.internet_computer_icp_logo
-            else -> 0
+            "NEAR" -> R.drawable.near_protocol_near_logo
+            else -> R.drawable.ic_token
         }
     }
 
@@ -69,16 +70,18 @@ object StateUtil {
             "BONK", "WIF" -> 8
             "MANTA", "VET", "DOGE", "TRX" -> 5
             "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "FTM", "ALGO", "SUPER", "XRP", "APT", "IOTA", "GALA", "SEI" -> 4
-            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE", "OP", "ICP" -> 3
+            "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE", "OP", "ICP", "NEAR" -> 3
             "BNB", "BTC", "ETH" -> 1
             else -> 2
         }
     }
 
-    fun formatCurrency(amount: Double): String {
+    fun formatCurrency(amount: Double, fractionDigits: Int = 2): String {
         val currencyCode = "USD"
         val currencyInstance = Currency.getInstance(currencyCode)
         val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        formatter.minimumFractionDigits = fractionDigits
+        formatter.maximumFractionDigits = fractionDigits
         formatter.currency = currencyInstance
         val formattedAmount = formatter.format(amount)
         return formattedAmount.replace(currencyInstance.symbol, "")

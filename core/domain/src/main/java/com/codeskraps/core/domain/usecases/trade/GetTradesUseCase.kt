@@ -33,6 +33,8 @@ class GetTradesUseCase @Inject constructor(
                 .apply {
                     add("BTCUSDC")
                     add("ETHFDUSD")
+                    add("ARBUSDC")
+                    add("ARBFDUSD")
                 }
 
             client.trades(symbols).let { trades ->

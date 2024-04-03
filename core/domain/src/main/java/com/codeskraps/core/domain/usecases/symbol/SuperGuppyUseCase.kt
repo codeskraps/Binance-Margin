@@ -17,22 +17,21 @@ class SuperGuppyUseCase @Inject constructor(
 
 ) {
     companion object {
-        val TAG = SuperGuppyUseCase::class.java.simpleName
+        val TAG: String = SuperGuppyUseCase::class.java.simpleName
         val fast = listOf(3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23)
         val slow = listOf(25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70)
-
     }
 
     operator fun invoke(candles: List<Candle>): SuperGuppy {
         val fastEma = fast.map { candles.ema(it) }
         val slowEma = slow.map { candles.ema(it) }
 
-        fastEma.forEachIndexed { index, list ->
+        /*fastEma.forEachIndexed { index, list ->
             Log.i(TAG, "fastEma($index): $list")
         }
         slowEma.forEachIndexed { index, list ->
             Log.i(TAG, "slowEma($index): $list")
-        }
+        }*/
 
         /*
         var fastSums = fastEma.first()
@@ -52,8 +51,8 @@ class SuperGuppyUseCase @Inject constructor(
         val fastEmaLast = fastEma.map { it.last() }
         val slowEmaLast = slowEma.map { it.last() }
 
-        Log.i(TAG, "fastEmaLast: $fastEmaLast")
-        Log.i(TAG, "slowEmaLast: $slowEmaLast")
+        /*Log.i(TAG, "fastEmaLast: $fastEmaLast")
+        Log.i(TAG, "slowEmaLast: $slowEmaLast")*/
 
         val colFastL = fastEmaLast.asSequence().windowed(2).all { (a, b) -> a >= b }
         val colFastS = fastEmaLast.asSequence().windowed(2).all { (a, b) -> a <= b }
@@ -61,13 +60,13 @@ class SuperGuppyUseCase @Inject constructor(
         val colSlowL = slowEmaLast.asSequence().windowed(2).all { (a, b) -> a >= b }
         val colSlowS = slowEmaLast.asSequence().windowed(2).all { (a, b) -> a <= b }
 
-        Log.i(
+        /*Log.i(
             TAG,
             "colFastL: $colFastL, " +
                     "colFastS: $colFastS, " +
                     "colSlowL: $colSlowL, " +
                     "colSlowS: $colSlowS"
-        )
+        )*/
 
         val colFinal = if (colFastL && slowEma.first().last() > slowEma.last().last()) {
             Color.CYAN

@@ -52,15 +52,13 @@ fun TransferCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
-                if (StateUtil.logo("${transfer.asset}USDT") != 0) {
-                    Image(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(bottom = 5.dp),
-                        painter = painterResource(id = StateUtil.logo("${transfer.asset}USDT")),
-                        contentDescription = "logo"
-                    )
-                }
+                Image(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(bottom = 5.dp),
+                    painter = painterResource(id = StateUtil.logo(transfer.asset)),
+                    contentDescription = "logo"
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = transfer.asset,
