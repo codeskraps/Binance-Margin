@@ -1,5 +1,6 @@
 package com.codeskraps.core.realm
 
+import com.codeskraps.core.realm.model.EntryPriceEntity
 import com.codeskraps.core.realm.model.FinishedTradeEntity
 import com.codeskraps.core.realm.model.OrderEntity
 import com.codeskraps.core.realm.model.TradeEntity
@@ -17,6 +18,8 @@ class BinanceRealmMigration : AutomaticSchemaMigration {
             migrationContext.newRealm.delete(FinishedTradeEntity::class.simpleName!!)
         } else if (migrationContext.newRealm.configuration.schemaVersion <= 11L) {
             migrationContext.newRealm.delete(OrderEntity::class.simpleName!!)
+        } else if (migrationContext.newRealm.configuration.schemaVersion <= 12L) {
+            migrationContext.newRealm.delete(EntryPriceEntity::class.simpleName!!)
         }
     }
 }

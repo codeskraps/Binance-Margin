@@ -1,5 +1,7 @@
 package com.codeskraps.core.realm.di
 
+import com.codeskraps.core.realm.dao.EntryPriceDao
+import com.codeskraps.core.realm.dao.EntryPriceDaoImpl
 import com.codeskraps.core.realm.dao.FinishTradeDao
 import com.codeskraps.core.realm.dao.FinishTradeDaoImpl
 import com.codeskraps.core.realm.dao.MarginAccountDao
@@ -43,4 +45,7 @@ interface DaoModule {
 
     @Binds
     fun bindFinishedTradeDao(impl: FinishTradeDaoImpl): FinishTradeDao
+
+    @Binds
+    fun bindsEntryPriceDao(impl: EntryPriceDaoImpl): EntryPriceDao
 }

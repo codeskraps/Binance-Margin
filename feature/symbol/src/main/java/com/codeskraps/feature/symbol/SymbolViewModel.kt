@@ -6,6 +6,7 @@ import com.codeskraps.feature.symbol.mvi.SymbolAction
 import com.codeskraps.feature.symbol.mvi.SymbolEvent
 import com.codeskraps.feature.symbol.mvi.SymbolState
 import com.codeskraps.core.domain.model.Candle
+import com.codeskraps.core.domain.model.EntryPrice
 import com.codeskraps.core.domain.model.Interval
 import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.util.StateReducerViewModel
@@ -25,6 +26,7 @@ class SymbolViewModel @Inject constructor(
     companion object {
         private const val CHART_LENGTH = 100
     }
+
     private var candlesNetworkLoading: Boolean = true
     private var ordersNetworkLoading: Boolean = true
     override fun reduceState(currentState: SymbolState, event: SymbolEvent): SymbolState {
@@ -33,6 +35,7 @@ class SymbolViewModel @Inject constructor(
             is SymbolEvent.Pause -> onPause(currentState)
             is SymbolEvent.LoadedCandles -> onCandlesLoaded(currentState, event.candles)
             is SymbolEvent.LoadedOrders -> onOrdersLoaded(currentState, event.orders)
+            is SymbolEvent.LoadedEntryPrice -> onEntryPriceLoaded(currentState, event.entryPrice)
             is SymbolEvent.ChartTimeChanged -> onChartTimeChanged(currentState, event.interval)
             is SymbolEvent.SuperGuppyLoaded -> onSuperGuppyLoaded(currentState, event.superGuppy)
             is SymbolEvent.StopLoading -> onStopLoading(currentState)
@@ -54,6 +57,16 @@ class SymbolViewModel @Inject constructor(
                 state.handleEvent(SymbolEvent.LoadedOrders(it))
             }
         }
+
+        if (entry == .0) {
+            viewModelScope.launch(Dispatchers.IO) {
+                useCases.getRealmEntryPrice(symbol)?.let { entryPrice ->
+                    if (entryPrice.price != .0)
+                        state.handleEvent(SymbolEvent.LoadedEntryPrice(entryPrice))
+                }
+            }
+        }
+
         return currentState.copy(
             isLoading = true,
             symbol = symbol,
@@ -84,6 +97,13 @@ class SymbolViewModel @Inject constructor(
         checkLoading()
 
         return currentState.copy(orders = orders)
+    }
+
+    private fun onEntryPriceLoaded(
+        currentState: SymbolState,
+        entryPrice: EntryPrice
+    ): SymbolState {
+        return currentState.copy(entry = entryPrice.price)
     }
 
     private fun onChartTimeChanged(
@@ -163,6 +183,7 @@ class SymbolViewModel @Inject constructor(
         }
     }
 
+    @Suppress("unused")
     private fun rsi(candles: List<Candle>) {
         viewModelScope.launch(Dispatchers.IO) {
             val rsi = useCases.rsi(candles)

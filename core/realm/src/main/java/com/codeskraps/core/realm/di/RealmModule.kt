@@ -2,6 +2,7 @@ package com.codeskraps.core.realm.di
 
 import com.codeskraps.core.realm.BinanceRealmMigration
 import com.codeskraps.core.realm.model.AssetEntity
+import com.codeskraps.core.realm.model.EntryPriceEntity
 import com.codeskraps.core.realm.model.FinishedTradeEntity
 import com.codeskraps.core.realm.model.MarginAccountEntity
 import com.codeskraps.core.realm.model.OrderEntity
@@ -33,10 +34,11 @@ object RealmModule {
                 TradeEntity::class,
                 OrderEntity::class,
                 TransferEntity::class,
-                FinishedTradeEntity::class
+                FinishedTradeEntity::class,
+                EntryPriceEntity::class
             )
         )
-            .schemaVersion(11)
+            .schemaVersion(12)
             .migration(BinanceRealmMigration())
             .build()
 

@@ -11,6 +11,7 @@ import com.codeskraps.core.domain.usecases.account.GetPnlTimeUseCase
 import com.codeskraps.core.domain.usecases.account.GetTickersUseCase
 import com.codeskraps.core.domain.usecases.account.PutAssetsSortUseCase
 import com.codeskraps.core.domain.usecases.account.PutPnlTimeUseCase
+import com.codeskraps.core.domain.usecases.account.ResetEntryPricesUseCase
 import javax.inject.Inject
 
 class AccountUseCases @Inject constructor(
@@ -24,5 +25,6 @@ class AccountUseCases @Inject constructor(
     val putPnlTime: PutPnlTimeUseCase,
     val getPnlTime: GetPnlTimeUseCase,
     val getOrders: GetOrdersUseCase,
-    val getMaxBorrow: GetMaxBorrowUseCase
+    val getMaxBorrow: GetMaxBorrowUseCase,
+    val resetEntryPrices: ResetEntryPricesUseCase
 )

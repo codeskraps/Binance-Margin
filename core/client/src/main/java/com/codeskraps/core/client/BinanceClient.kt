@@ -111,14 +111,14 @@ class BinanceClient @Inject constructor(
             parameters["limit"] = limit
 
             val result = market.klines(parameters)
-            Log.i(TAG, result)
+            //Log.i(TAG, result)
 
             val listType = Types.newParameterizedType(List::class.java, CandleDto::class.java)
             val adapter = moshiCandles.adapter<List<CandleDto>>(listType)
 
 
             val dataList = adapter.fromJson(result)
-            Log.e(TAG, dataList.toString())
+            //Log.e(TAG, dataList.toString())
             dataList ?: emptyList()
 
         }.getOrElse {

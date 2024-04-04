@@ -4,6 +4,7 @@ import android.util.Log
 import com.codeskraps.core.client.BinanceClient
 import com.codeskraps.core.domain.BuildConfig
 import com.codeskraps.core.domain.model.Entry
+import com.codeskraps.core.domain.model.EntryPrice
 import com.codeskraps.core.domain.model.FinishTrade
 import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.domain.model.TradeType
@@ -17,7 +18,9 @@ import kotlin.math.absoluteValue
 class GetEntryPriceUseCase @Inject constructor(
     private val tradesUseCase: GetTradesUseCase,
     private val transfersUseCase: GetTransfersUseCase,
-    private val putFinishTradeUseCase: PutFinishTradeUseCase
+    private val putFinishTradeUseCase: PutFinishTradeUseCase,
+    private val putEntryPriceUseCase: PutEntryPriceUseCase,
+    private val getRealmEntryPriceUseCase: GetRealmEntryPriceUseCase
 ) {
 
     companion object {
@@ -64,7 +67,16 @@ class GetEntryPriceUseCase @Inject constructor(
                 .filterIsInstance<Transfer>()
                 .filter { "${it.asset}${BinanceClient.BASE_ASSET}" == symbol }
 
-            val entries = listOf(trades, transfers).flatten().sortedBy { it.time() }
+            var entries = listOf(trades, transfers).flatten().sortedBy { it.time() }
+
+            getRealmEntryPriceUseCase(symbol)?.let { entryPrice ->
+                if (entries.last().time() == entryPrice.lastTrade) {
+                    return@coroutineScope entryPrice.price
+                } else if (entryPrice.price == .0) {
+                    entries = entries.filter { it.time() > entryPrice.lastTrade }
+                }
+            }
+
             var calcData = CalcData()
             log(symbol, "Start -> $symbol")
 
@@ -116,6 +128,18 @@ class GetEntryPriceUseCase @Inject constructor(
             }
 
             log(symbol, "Final -> $calcData")
+
+            if (entries.isNotEmpty()) {
+                putEntryPriceUseCase(
+                    EntryPrice(
+                        symbol,
+                        calcData.avgPrice,
+                        entries.last().time()
+                    )
+                )
+            } else {
+                Log.i(TAG, "No entries found for $symbol")
+            }
 
             return@coroutineScope calcData.avgPrice
         }

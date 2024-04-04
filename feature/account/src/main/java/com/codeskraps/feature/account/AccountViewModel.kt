@@ -104,6 +104,8 @@ class AccountViewModel @Inject constructor(
                 )
                 state.handleEvent(AccountEvent.LoadTicker)
                 state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTime()))
+
+                useCases.resetEntryPrices(symbols)
             }
         }
         return currentState.copy(isLoading = true)
