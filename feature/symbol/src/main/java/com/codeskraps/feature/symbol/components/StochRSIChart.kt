@@ -31,8 +31,10 @@ fun StochRSIChart(
 
     val entriesK = stochK.mapIndexed { index, value -> entryOf(index.toFloat(), value) }
     val entriesD = stochD.mapIndexed { index, value -> entryOf(index.toFloat(), value) }
+    val twenty = List(stochK.size) { 20f }.mapIndexed { index, fl -> entryOf(index.toFloat(), fl) }
+    val eighty = List(stochK.size) { 80f }.mapIndexed { index, fl -> entryOf(index.toFloat(), fl) }
 
-    val chartEntryModel = entryModelOf(entriesK, entriesD)
+    val chartEntryModel = entryModelOf(twenty, eighty, entriesK, entriesD)
 
     val verticalAxisValueFormatter =
         AxisValueFormatter<AxisPosition.Vertical.End> { value, _ ->
@@ -58,6 +60,14 @@ fun StochRSIChart(
             spacing = 2.dp,
             axisValuesOverrider = axisOverride,
             lines = listOf(
+                LineChart.LineSpec(
+                    lineThicknessDp = .5f,
+                    lineColor = Color.WHITE
+                ),
+                LineChart.LineSpec(
+                    lineThicknessDp = .5f,
+                    lineColor = Color.WHITE
+                ),
                 LineChart.LineSpec(
                     lineThicknessDp = 1f,
                     lineColor = colorResource(id = R.color.margin_level_red).toArgb()

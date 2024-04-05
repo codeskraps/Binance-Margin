@@ -9,8 +9,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.codeskraps.core.domain.R
-import com.codeskraps.core.domain.model.PnLTimeType
-import com.codeskraps.feature.pnl.mvi.PnLEvent
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -35,7 +33,7 @@ fun PnLChart(
 
     val chartEntryModel = entryModelOf(*entries.toTypedArray())
     val lineColor = colorResource(id = R.color.margin_level_red.takeIf {
-        entries.first() > entries.last()
+        entries.last() < 0
     } ?: R.color.margin_level_green)
 
     val verticalAxisValueFormatter =

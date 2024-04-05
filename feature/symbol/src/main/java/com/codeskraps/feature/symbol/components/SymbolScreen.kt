@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.codeskraps.core.domain.R
 import com.codeskraps.core.domain.components.BinanceScaffold
@@ -55,7 +56,7 @@ fun SymbolScreen(
                 .fillMaxSize()
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp)
         ) {
-            Text(text = state.symbol)
+            Text(text = state.symbol, fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(10.dp))
             val price = state.entries.lastOrNull()?.close ?: 0.0
@@ -68,72 +69,80 @@ fun SymbolScreen(
                 Text("ticker: ${price.toDouble().format(StateUtil.decimal(state.symbol))}")
             }
 
-            if (state.entries.isNotEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    SymbolChart(
-                        entries = state.entries,
-                        superGuppy = state.superGuppy,
-                        entry = state.entry,
-                        orders = state.orders,
-                        visibility = state.visibility
-                    )
+            LazyColumn {
+                item {
+                    if (state.entries.isNotEmpty()) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            SymbolChart(
+                                entries = state.entries,
+                                superGuppy = state.superGuppy,
+                                entry = state.entry,
+                                orders = state.orders,
+                                visibility = state.visibility
+                            )
 
-                    val icon = if (state.visibility)
-                        R.drawable.ic_visibility
-                    else R.drawable.ic_visibility_off
+                            val icon = if (state.visibility)
+                                R.drawable.ic_visibility
+                            else R.drawable.ic_visibility_off
 
-                    IconButton(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(10.dp),
-                        onClick = {
-                            handleEvent(SymbolEvent.VisibilityChanged(!state.visibility))
-                        }) {
-                        Icon(painter = painterResource(id = icon), contentDescription = null)
+                            IconButton(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(10.dp),
+                                onClick = {
+                                    handleEvent(SymbolEvent.VisibilityChanged(!state.visibility))
+                                }) {
+                                Icon(
+                                    painter = painterResource(id = icon),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .padding(2.dp),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            Interval.entries.forEach {
+                                ChartTimeButton(
+                                    selected = state.interval == it,
+                                    interval = it,
+                                    handleEvent = handleEvent
+                                )
+                            }
+                        }
                     }
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .padding(2.dp),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Interval.entries.forEach {
-                        ChartTimeButton(
-                            selected = state.interval == it,
-                            interval = it,
-                            handleEvent = handleEvent
-                        )
+
+                    if (state.rsi.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        RSIChart(rsi = state.rsi)
                     }
+
+                    if (state.stochRSI.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        StochRSIChart(stochRsi = state.stochRSI)
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
-            }
 
-            if (state.rsi.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
-                RSIChart(rsi = state.rsi)
-            }
-
-            if (state.stochRSI.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
-                StochRSIChart(stochRsi = state.stochRSI)
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-            if (state.orders.isNotEmpty()) {
-                LazyColumn {
+                if (state.orders.isNotEmpty()) {
                     items(state.orders) { order ->
                         OrderCard(order = order)
                     }
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "No orders found")
+                } else {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No orders found")
+                        }
+                    }
                 }
             }
         }
