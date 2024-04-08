@@ -11,6 +11,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -49,6 +50,12 @@ fun AccountScreen(
 
     BinanceScaffold(
         modifier = modifier,
+        title = {
+            Column {
+                Text(text = "Binance Margin")
+                Text(text = "UTC ${state.utcTime}", fontSize = MaterialTheme.typography.bodySmall.fontSize)
+            }
+        },
         actions = {
             if (state.isLoading) CircularProgressIndicator(
                 modifier = Modifier

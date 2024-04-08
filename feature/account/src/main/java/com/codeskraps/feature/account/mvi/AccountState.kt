@@ -32,7 +32,8 @@ data class AccountState(
     val pnlTime: PnLTimeType,
     val assetsSort: AssertSort,
     val orders: List<Order>,
-    val maxBorrow: Double
+    val maxBorrow: Double,
+    val utcTime: String
 ) {
     companion object {
         val initial = AccountState(
@@ -50,7 +51,8 @@ data class AccountState(
             pnlTime = PnLTimeType.DAY,
             assetsSort = AssertSort.Value,
             orders = emptyList(),
-            maxBorrow = .0
+            maxBorrow = .0,
+            utcTime = ""
         )
     }
 
@@ -87,7 +89,7 @@ data class AccountState(
             valueAssets - entryValueAssets
         }.getOrElse { .0 }
 
-    val currentPnlPercent:Double
+    val currentPnlPercent: Double
         get() = runCatching {
             (currentPnl / entryValueAssets) * 100
         }.getOrElse { .0 }

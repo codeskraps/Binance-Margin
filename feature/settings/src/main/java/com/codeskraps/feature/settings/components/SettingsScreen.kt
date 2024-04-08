@@ -1,6 +1,7 @@
 package com.codeskraps.feature.settings.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.codeskraps.core.domain.components.BinanceScaffold
 import com.codeskraps.feature.settings.mvi.SettingsEvent
@@ -17,7 +18,9 @@ fun SettingsScreen(
         navRoute("back")
     }
 
-    BinanceScaffold {
+    BinanceScaffold(
+        title = { Text(text = "Binance Margin") }
+    ) {
         CategoryPreference(title = "General")
         DatePickerPreference(title = "Start Date", date = state.startDate, onDateChange = {
             handleEvent(SettingsEvent.UpdateDate(it))

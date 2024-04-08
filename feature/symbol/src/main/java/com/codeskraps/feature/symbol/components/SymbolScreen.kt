@@ -43,14 +43,16 @@ fun SymbolScreen(
         }
     }
 
-    BinanceScaffold(actions = {
-        if (state.isLoading) CircularProgressIndicator(
-            modifier = Modifier
-                .size(50.dp)
-                .padding(10.dp),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }) {
+    BinanceScaffold(
+        title = { Text(text = "Binance Margin") },
+        actions = {
+            if (state.isLoading) CircularProgressIndicator(
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(10.dp),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

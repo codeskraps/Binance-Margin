@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +36,7 @@ fun WatchlistScreen(
 
     BinanceScaffold(
         modifier = modifier,
+        title = { Text(text = "Binance Margin") },
         actions = {
             if (state.isLoading) CircularProgressIndicator(
                 modifier = Modifier

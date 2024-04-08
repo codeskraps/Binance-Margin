@@ -31,6 +31,7 @@ import com.codeskraps.core.domain.R
 @Composable
 fun BinanceScaffold(
     modifier: Modifier = Modifier,
+    title: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -63,7 +64,7 @@ fun BinanceScaffold(
                         contentDescription = ""
                     )
                 },
-                title = { Text(text = "Binance Margin") },
+                title = title,
                 actions = actions,
                 scrollBehavior = scrollBehavior
             )

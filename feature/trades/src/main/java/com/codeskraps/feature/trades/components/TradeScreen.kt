@@ -43,6 +43,7 @@ fun TradeScreen(
 
     BinanceScaffold(
         modifier = modifier,
+        title = { Text(text = "Binance Margin") },
         actions = {
             if (state.isLoading) CircularProgressIndicator(
                 modifier = Modifier

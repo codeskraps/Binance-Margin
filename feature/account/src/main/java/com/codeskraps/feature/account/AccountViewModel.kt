@@ -18,6 +18,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,11 +31,13 @@ class AccountViewModel @Inject constructor(
 
     companion object {
         private val TAG = AccountViewModel::class.java.simpleName
+        private const val UTC_FORMAT = "dd-MM-yyyy HH:mm:ss"
     }
 
     private var resumed = false
     private var accountJob: Job? = null
     private var tickerJob: Job? = null
+    private var timeJob: Job? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -51,6 +57,7 @@ class AccountViewModel @Inject constructor(
             is AccountEvent.PnLTimeChanged -> onTimeChanged(currentState, event.time)
             is AccountEvent.AssetsSortLoaded -> onAssetsSortLoaded(currentState, event.assetsSort)
             is AccountEvent.OpenSymbol -> onOpenSymbol(currentState, event.symbol, event.entry)
+            is AccountEvent.UTCTime -> onUTCTime(currentState, event.time)
         }
     }
 
@@ -106,6 +113,16 @@ class AccountViewModel @Inject constructor(
                 state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTime()))
 
                 useCases.resetEntryPrices(symbols)
+            }
+        }
+
+        timeJob = viewModelScope.launch(Dispatchers.IO) {
+            while (resumed) {
+                val date = Date(System.currentTimeMillis())
+                val simpleDateFormat = SimpleDateFormat(UTC_FORMAT, Locale.getDefault())
+                simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                state.handleEvent(AccountEvent.UTCTime(simpleDateFormat.format(date)))
+                delay(1000L)
             }
         }
         return currentState.copy(isLoading = true)
@@ -206,5 +223,9 @@ class AccountViewModel @Inject constructor(
             actionChannel.send(AccountAction.OpenSymbol(symbol, entry))
         }
         return currentState
+    }
+
+    private fun onUTCTime(currentState: AccountState, time: String): AccountState {
+        return currentState.copy(utcTime = time)
     }
 }
