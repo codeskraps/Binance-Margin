@@ -21,6 +21,7 @@ fun PortraitColumn(
 
             LazyColumn {
                 item {
+                    StatsItem(state = state)
                     ChartItem(state = state, handleEvent = handleEvent)
                 }
                 items(acc.userAssets

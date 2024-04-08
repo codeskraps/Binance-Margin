@@ -15,29 +15,29 @@ class GetPnLUseCase @Inject constructor(
 ) {
     companion object {
         private val TAG = GetPnLUseCase::class.java.simpleName
-        private const val twentyFourHoursInMillis = 24 * 60 * 60 * 1000L
-        private const val oneWeekInMillis = 7 * twentyFourHoursInMillis
-        private const val oneMonthInMillis = 30 * twentyFourHoursInMillis
-        private const val oneYearInMillis = 365 * twentyFourHoursInMillis
+        private const val TWENTY_FOUR_HOUR_IN_MILLIS = 24 * 60 * 60 * 1000L
+        private const val ONE_WEEK_IN_MILLIS = 7 * TWENTY_FOUR_HOUR_IN_MILLIS
+        private const val ONE_MONTH_IN_MILLIS = 30 * TWENTY_FOUR_HOUR_IN_MILLIS
+        private const val ONE_YEAR_IN_MILLIS = 365 * TWENTY_FOUR_HOUR_IN_MILLIS
     }
 
     suspend operator fun invoke(time: PnLTimeType): List<PnL> {
         val result = runCatching {
             val entries = when (time) {
                 PnLTimeType.DAY -> {
-                    pnLHourlyDao.findByTime(System.currentTimeMillis() - twentyFourHoursInMillis)
+                    pnLHourlyDao.findByTime(System.currentTimeMillis() - TWENTY_FOUR_HOUR_IN_MILLIS)
                 }
 
                 PnLTimeType.WEEK -> {
-                    pnLHourlyDao.findByTime(System.currentTimeMillis() - oneWeekInMillis)
+                    pnLHourlyDao.findByTime(System.currentTimeMillis() - ONE_WEEK_IN_MILLIS)
                 }
 
                 PnLTimeType.MONTH -> {
-                    pnLDailyDao.findByTime(System.currentTimeMillis() - oneMonthInMillis)
+                    pnLDailyDao.findByTime(System.currentTimeMillis() - ONE_MONTH_IN_MILLIS)
                 }
 
                 PnLTimeType.YEAR -> {
-                    pnLDailyDao.findByTime(System.currentTimeMillis() - oneYearInMillis)
+                    pnLDailyDao.findByTime(System.currentTimeMillis() - ONE_YEAR_IN_MILLIS)
                 }
 
                 PnLTimeType.ALL -> pnLDailyDao.findAll()

@@ -30,13 +30,14 @@ fun ChartItem(
             Spacer(modifier = Modifier.height(5.dp))
         }
 
+        /*
         Text(text = "Base:")
         Spacer(modifier = Modifier.height(10.dp))
         CardAsset(
             state = state,
             asset = acc.userAssets.first { it.asset == Constants.BASE_ASSET },
             handleEvent = handleEvent
-        )
+        )*/
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(text = "Assets(${
                 acc.userAssets

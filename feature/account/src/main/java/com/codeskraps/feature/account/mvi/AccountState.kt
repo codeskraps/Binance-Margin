@@ -15,6 +15,7 @@ import com.codeskraps.core.domain.model.PnLTimeType
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import kotlin.math.abs
 
 data class AccountState(
     val isLoading: Boolean,
@@ -53,6 +54,16 @@ data class AccountState(
         )
     }
 
+    val free: Double
+        get() = runCatching {
+            account.userAssets.first { it.asset == Constants.BASE_ASSET }.free
+        }.getOrElse { .0 }
+
+    val locked: Double
+        get() = runCatching {
+            account.userAssets.first { it.asset == Constants.BASE_ASSET }.locked
+        }.getOrElse { .0 }
+
     val entryValueAssets: Double
         get() = runCatching {
             var totalValue = .0
@@ -71,6 +82,16 @@ data class AccountState(
             totalValue
         }.getOrElse { .0 }
 
+    val currentPnl: Double
+        get() = runCatching {
+            valueAssets - entryValueAssets
+        }.getOrElse { .0 }
+
+    val currentPnlPercent:Double
+        get() = runCatching {
+            (currentPnl / entryValueAssets) * 100
+        }.getOrElse { .0 }
+
     fun valueAssetPercent(asset: Asset): Double {
         return runCatching {
             (value(asset) / valueAssets) * 100
@@ -82,7 +103,7 @@ data class AccountState(
             if (asset.asset == Constants.BASE_ASSET) {
                 asset.netAsset
             } else {
-                asset.netAsset * ticker.first { it.symbol == "${asset.asset}${Constants.BASE_ASSET}" }.price
+                abs(asset.netAsset) * ticker.first { it.symbol == "${asset.asset}${Constants.BASE_ASSET}" }.price
             }
         }.getOrElse { .0 }
     }
@@ -102,23 +123,30 @@ data class AccountState(
 
     fun investedAsset(asset: Asset): Double {
         return runCatching {
-            entry(asset) * asset.netAsset
+            entry(asset) * abs(asset.netAsset)
         }.getOrElse { .0 }
     }
 
     fun pnLAsset(asset: Asset): Double {
         return runCatching {
             if (investedAsset(asset) == .0) .0
-            else value(asset) - investedAsset(asset)
+            else if (asset.netAsset > 0) { // LONG
+                value(asset) - investedAsset(asset)
+            } else { // SHORT
+                investedAsset(asset) - value(asset)
+            }
         }.getOrElse { .0 }
     }
 
     fun pnlAssetPercent(asset: Asset): Double {
+        // TODO: Check is Long/SHORT
         return runCatching {
-            if (investedAsset(asset) == .0) .0
-            else {
-                val investedAsset = investedAsset(asset)
+            val investedAsset = investedAsset(asset)
+            if (investedAsset == .0) .0
+            else if (asset.netAsset > 0) { // LONG
                 ((value(asset) - investedAsset) / investedAsset) * 100
+            } else { // SHORT
+                ((investedAsset - value(asset)) / investedAsset) * 100
             }
         }.getOrElse { .0 }
     }
