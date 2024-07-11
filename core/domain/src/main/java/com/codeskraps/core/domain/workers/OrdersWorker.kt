@@ -53,10 +53,14 @@ class OrdersWorker @AssistedInject constructor(
         while (retry) {
             when (val result = client.orders(symbol)) {
                 is Response.Success -> {
-                    orderDao.findAll().filter { it.symbol == symbol }.forEach {
-                        orderDao.delete(it)
-                    }
-                    orderDao.insertAll(result.data.map { it.toOrderEntity() })
+                    orderDao.findAll()
+                        .filter { it.symbol == symbol }
+                        .forEach {
+                            orderDao.delete(it)
+                        }
+                    orderDao.insertAll(result.data
+                        .filter { it.status != "CANCELED" && it.status != "EXPIRED" && it.status != "REJECTED" && it.status != "FILLED" }
+                        .map { it.toOrderEntity() })
                     retry = false
                 }
 

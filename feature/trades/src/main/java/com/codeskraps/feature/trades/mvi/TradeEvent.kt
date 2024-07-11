@@ -14,5 +14,4 @@ sealed interface TradeEvent {
     data class OrderSelection(val index: Int) : TradeEvent
     data object StopLoading : TradeEvent
     data class PriceUpdate(val transfer: Transfer) : TradeEvent
-    data class DeleteOrder(val order: Order) : TradeEvent
 }
