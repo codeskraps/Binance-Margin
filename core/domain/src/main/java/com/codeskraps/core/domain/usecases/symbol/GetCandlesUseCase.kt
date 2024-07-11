@@ -9,7 +9,7 @@ import javax.inject.Inject
 class GetCandlesUseCase @Inject constructor(
     private val client: BinanceClient
 ) {
-    suspend operator fun invoke(symbol: String, interval: Interval, limit: Int): List<Candle> {
+    operator fun invoke(symbol: String, interval: Interval, limit: Int): List<Candle> {
         return runCatching {
             client.kLines(
                 symbol = symbol,

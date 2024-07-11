@@ -2,12 +2,15 @@ package com.codeskraps.core.domain.usecases.account
 
 import android.util.Log
 import com.codeskraps.core.domain.BuildConfig
+import com.codeskraps.core.domain.model.Asset
 import com.codeskraps.core.domain.model.EntryPrice
 import com.codeskraps.core.domain.model.FinishTrade
 import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.domain.model.TradeType
 import com.codeskraps.core.domain.model.Transfer
+import com.codeskraps.core.domain.util.Constants
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 
@@ -15,7 +18,8 @@ class GetEntryPriceUseCase @Inject constructor(
     private val getEntriesUseCase: GetEntriesUseCase,
     private val putFinishTradeUseCase: PutFinishTradeUseCase,
     private val putEntryPriceUseCase: PutEntryPriceUseCase,
-    private val getRealmEntryPriceUseCase: GetRealmEntryPriceUseCase
+    private val getRealmEntryPriceUseCase: GetRealmEntryPriceUseCase,
+    private val getMarginAccountUseCase: GetMarginAccountUseCase
 ) {
 
     companion object {
@@ -49,6 +53,22 @@ class GetEntryPriceUseCase @Inject constructor(
     suspend operator fun invoke(symbol: String): Double {
         return coroutineScope {
             var entries = getEntriesUseCase(symbol)
+            val asset: Asset? = getMarginAccountUseCase()
+                .first()
+                .userAssets
+                .firstOrNull { "${it}${Constants.BASE_ASSET}" == symbol }
+
+            asset?.let {
+                if (it.netAsset == 0.0) {
+                    putEntryPriceUseCase(
+                        EntryPrice(
+                            symbol,
+                            0.0,
+                            entries.last().time()
+                        )
+                    )
+                }
+            }
 
             getRealmEntryPriceUseCase(symbol)?.let { entryPrice ->
                 if (entries.last().time() == entryPrice.lastTrade) {
@@ -90,7 +110,10 @@ class GetEntryPriceUseCase @Inject constructor(
                     }
                 }
 
-                if (calcData.totalQty == .0 && calcData.pnl != .0) {
+                if ((calcData.totalQty == .0 && calcData.pnl != .0) ||
+                    asset == null ||
+                    asset.netAsset == 0.0
+                ) {
                     putFinishTradeUseCase(
                         FinishTrade(
                             entryTime = calcData.entryTime,

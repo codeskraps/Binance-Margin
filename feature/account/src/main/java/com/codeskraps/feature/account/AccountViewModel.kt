@@ -31,7 +31,7 @@ class AccountViewModel @Inject constructor(
 
     companion object {
         private val TAG = AccountViewModel::class.java.simpleName
-        private const val UTC_FORMAT = "dd-MM-yyyy HH:mm:ss"
+        private const val UTC_FORMAT = "dd-MM-yyyy hh:mm:ss"
     }
 
     private var resumed = false
@@ -58,6 +58,7 @@ class AccountViewModel @Inject constructor(
             is AccountEvent.AssetsSortLoaded -> onAssetsSortLoaded(currentState, event.assetsSort)
             is AccountEvent.OpenSymbol -> onOpenSymbol(currentState, event.symbol, event.entry)
             is AccountEvent.UTCTime -> onUTCTime(currentState, event.time)
+            is AccountEvent.LoadSupperGuppy -> onLoadSupperGuppy(currentState, event.symbols)
         }
     }
 
@@ -111,6 +112,7 @@ class AccountViewModel @Inject constructor(
                 )
                 state.handleEvent(AccountEvent.LoadTicker)
                 state.handleEvent(AccountEvent.PnLTimeChanged(useCases.getPnlTime()))
+                state.handleEvent(AccountEvent.LoadSupperGuppy(symbols.toSet()))
 
                 useCases.resetEntryPrices(symbols)
             }
@@ -227,5 +229,14 @@ class AccountViewModel @Inject constructor(
 
     private fun onUTCTime(currentState: AccountState, time: String): AccountState {
         return currentState.copy(utcTime = time)
+    }
+
+    private fun onLoadSupperGuppy(currentState: AccountState, symbols: Set<String>): AccountState {
+        viewModelScope.launch(Dispatchers.IO) {
+            // TODO: Implement this
+            //val superGuppy = useCases.getSuperGuppy(symbols)
+            //state.handleEvent(AccountEvent.SuperGuppyLoaded(superGuppy))
+        }
+        return currentState
     }
 }

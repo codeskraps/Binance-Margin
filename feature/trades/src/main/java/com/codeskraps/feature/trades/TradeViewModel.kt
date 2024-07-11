@@ -39,6 +39,7 @@ class TradeViewModel @Inject constructor(
             is TradeEvent.OrderSelection -> onOrderSelection(currentState, event.index)
             is TradeEvent.StopLoading -> onStopLoading(currentState)
             is TradeEvent.PriceUpdate -> onPriceUpdate(currentState, event.transfer)
+            is TradeEvent.DeleteOrder -> onDeleteOrder(currentState, event.order)
         }
     }
 
@@ -142,6 +143,13 @@ class TradeViewModel @Inject constructor(
 
     private fun onStopLoading(currentState: TradesState): TradesState {
         return currentState.copy(isLoading = false)
+    }
+
+    private fun onDeleteOrder(currentState: TradesState, order: Order): TradesState {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCases.deleteOrder(order)
+        }
+        return currentState
     }
 
     private fun checkLoading() {

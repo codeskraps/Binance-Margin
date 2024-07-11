@@ -57,6 +57,9 @@ object StateUtil {
             "OP" -> R.drawable.optimism_ethereum_op_logo
             "ICP" -> R.drawable.internet_computer_icp_logo
             "NEAR" -> R.drawable.near_protocol_near_logo
+            "IMX" -> R.drawable.immutable_x_imx_logo
+            "GRT" -> R.drawable.the_graph_grt_logo
+            "ROSE" -> R.drawable.oasis_network_rose_logo
             else -> R.drawable.ic_token
         }
     }
@@ -68,8 +71,8 @@ object StateUtil {
     fun decimal(symbol: String): Int {
         return when (symbol.replace(BinanceClient.BASE_ASSET, "")) {
             "BONK", "WIF" -> 8
-            "MANTA", "VET", "DOGE", "TRX" -> 5
-            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "FTM", "ALGO", "SUPER", "XRP", "APT", "IOTA", "GALA", "SEI" -> 4
+            "MANTA", "VET", "DOGE", "TRX", "ROSE" -> 5
+            "ADA", "JUP", "MATIC", "SUI", "ARB", "STX", "XAI", "FTM", "ALGO", "SUPER", "XRP", "APT", "IOTA", "GALA", "SEI", "IMX", "GRT" -> 4
             "LINK", "FIL", "ATOM", "RNDR", "AR", "DOT", "PYR", "CAKE", "APE", "OP", "ICP", "NEAR" -> 3
             "BNB", "BTC", "ETH" -> 1
             else -> 2

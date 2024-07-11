@@ -7,10 +7,10 @@ object ConfigData {
     const val targetSdk = 34
     const val compileSdk = 34
 
-    val javaVersion = JavaVersion.VERSION_17
-    const val javaTarget = "17"
+    val javaVersion = JavaVersion.VERSION_19
+    val javaTarget = javaVersion.toString()
 
-    const val kotlinCompiler = "1.5.8"
+    const val kotlinCompiler = "1.5.14"
 
     const val versionCode = 1
     const val versionName = "1.0"

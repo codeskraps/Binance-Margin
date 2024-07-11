@@ -1,6 +1,5 @@
 package com.codeskraps.feature.trades.mvi
 
-import com.codeskraps.core.domain.model.FinishTrade
 import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.domain.model.Transfer
@@ -15,4 +14,5 @@ sealed interface TradeEvent {
     data class OrderSelection(val index: Int) : TradeEvent
     data object StopLoading : TradeEvent
     data class PriceUpdate(val transfer: Transfer) : TradeEvent
+    data class DeleteOrder(val order: Order) : TradeEvent
 }

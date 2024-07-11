@@ -27,4 +27,6 @@ sealed interface AccountEvent {
     data class AssetsSortLoaded(val assetsSort: AssertSort) : AccountEvent
     data class OpenSymbol(val symbol: String, val entry: Double) : AccountEvent
     data class UTCTime(val time: String) : AccountEvent
+
+    data class LoadSupperGuppy(val symbols: Set<String>) : AccountEvent
 }

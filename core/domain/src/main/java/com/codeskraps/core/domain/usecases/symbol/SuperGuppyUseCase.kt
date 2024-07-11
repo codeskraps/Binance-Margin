@@ -1,7 +1,6 @@
 package com.codeskraps.core.domain.usecases.symbol
 
 import android.graphics.Color
-import android.util.Log
 import com.codeskraps.core.domain.model.Candle
 import javax.inject.Inject
 

@@ -1,5 +1,6 @@
 package com.codeskraps.feature.trades.mvi
 
+import androidx.paging.PagingData
 import com.codeskraps.core.domain.model.Order
 import com.codeskraps.core.domain.model.Trade
 import com.codeskraps.core.domain.model.Transfer

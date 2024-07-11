@@ -2,7 +2,6 @@ package com.codeskraps.feature.pnl
 
 import androidx.lifecycle.viewModelScope
 import com.codeskraps.core.domain.model.FinishTrade
-import com.codeskraps.core.domain.model.PnLTimeType
 import com.codeskraps.core.domain.model.TradeType
 import com.codeskraps.core.domain.util.StateReducerViewModel
 import com.codeskraps.feature.pnl.mvi.PnLAction
@@ -12,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
 

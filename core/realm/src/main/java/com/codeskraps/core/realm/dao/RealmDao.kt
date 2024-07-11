@@ -45,17 +45,25 @@ interface RealmDao<T : RealmObject> {
         return realm.query(clazz).find()
     }
 
-    suspend fun findById(id: String): T? {
-        return realm.query(clazz, "id == $0", id).first().find()
+    suspend fun findById(id: String, key: String = "id"): T? {
+        return realm.query(clazz, "$key == $0", id).first().find()
     }
 
-    suspend fun findById(id: Long): T? {
-        return realm.query(clazz, "id == $0", id).first().find()
+    suspend fun findById(id: Long, key: String = "id"): T? {
+        return realm.query(clazz, "$key == $0", id).first().find()
     }
 
     suspend fun delete(entity: T) {
         realm.write {
             findLatest(entity)?.let { delete(it) }
+        }
+    }
+
+    suspend fun deleteById(id: Long, key: String = "id") {
+        realm.write {
+            realm.query(clazz, "$key == $0", id).first().find()?.let {
+                findLatest(it)?.let { d -> delete(d) }
+            }
         }
     }
 

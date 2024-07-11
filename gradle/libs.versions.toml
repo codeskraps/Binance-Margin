@@ -1,25 +1,26 @@
 [versions]
-andoix-compose-bom = "2024.02.02"
-activity-compose = "1.8.2"
-androidx-junit = "1.1.5"
+andoix-compose-bom = "2024.06.00"
+activity-compose = "1.9.0"
+androidx-junit = "1.2.1"
 binance-connector-java = "3.2.0"
 vico-compose = "1.14.0"
-core-ktx = "1.12.0"
-espresso-core = "3.5.1"
+core-ktx = "1.13.1"
+espresso-core = "3.6.1"
 hilt-android = "2.51"
 hilt-work = "1.2.0"
 junit = "4.13.2"
 realm_kotlin = "1.13.0"
-lifecycle-runtime-ktx = "2.7.0"
-moshi = "1.15.0"
+lifecycle-runtime-ktx = "2.8.3"
+moshi = "1.15.1"
 navigation-compose = "2.7.7"
 work-runtime = "2.9.0"
+paging-compose = "3.3.0"
 
-android_application = "8.3.1"
-kotlin_android = "1.9.22"
-ksp = "1.9.22-1.0.17"
-appcompat = "1.6.1"
-material = "1.11.0"
+android_application = "8.5.0"
+kotlin_android = "1.9.24"
+ksp = "1.9.24-1.0.20"
+appcompat = "1.7.0"
+material = "1.12.0"
 
 
 [libraries]
@@ -43,6 +44,8 @@ androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-ru
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work-runtime" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging-compose" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging-compose" }
 binance-connector-java = { module = "io.github.binance:binance-connector-java", version.ref = "binance-connector-java" }
 vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico-compose" }
 vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico-compose" }
